@@ -208,7 +208,7 @@
 
                     nftPoolBoxesINANDInputIndices.forall({ nftPoolBoxINANDInputIndex: (Box, Int) => 
                         
-                        val nftPoolBoxINIndexBytes: Coll[Byte] = nftPoolBoxINANDInputIndex._1.creationInfo._2.slice(32, 65)
+                        val nftPoolBoxINIndexBytes: Coll[Byte] = nftPoolBoxINANDInputIndex._1.creationInfo._2.slice(32, 36)
                         val nftPoolBoxINIndex: Coll[Byte] = byteArrayToLong(prefix.append(nftPoolBoxINIndexBytes)).toInt
 
                         (nftPoolBoxINIndex == nftPoolBoxINANDInputIndex._2)
@@ -225,7 +225,7 @@
 
                     nftPoolBoxesOUTANDInputIndices.forall({ nftPoolBoxOUTANDBoxIndex: (Box, Int) => 
                     
-                        val nftPoolBoxOUTIndexBytes: Coll[Byte] = nftPoolBoxOUTANDBoxIndex._1.creationInfo._2.slice(32, 65)
+                        val nftPoolBoxOUTIndexBytes: Coll[Byte] = nftPoolBoxOUTANDBoxIndex._1.creationInfo._2.slice(32, 36)
                         val nftPoolBoxOUTIndex: Coll[Byte] = byteArrayToLong(prefix.append(nftPoolBoxOUTIndexBytes)).toInt
 
                         (nftPoolBoxOUTIndex == nftPoolBoxOUTANDBoxIndex._2)
