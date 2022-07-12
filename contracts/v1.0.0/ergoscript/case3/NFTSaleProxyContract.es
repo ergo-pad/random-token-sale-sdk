@@ -20,30 +20,30 @@
     
     // ===== Relevant Variables ===== //
     val randomness: BigInt = byteArrayToBigInt(ergopadRNGOracleDataInputBox.R5[Coll[Byte]].get)
-    val nftCollection: Coll[(Coll[Byte], Long)] = nftPoolBoxes.flatMap({ (nftPoolBox: Box) => nftPoolBox.tokens.slice(1, tokens.size-1) })
+    val nftCollection: Coll[(Coll[Byte], Long)] = nftPoolBoxes.flatMap({ (nftPoolBox: Box) => nftPoolBox.tokens.slice(1, nftPoolBox.tokens.size-1) })
     val nftIndices: Coll[Int] = nftCollection.indices
     val nftIndexCollection: Coll[Coll[Int]] = nftIndices.map(nftIndex: Int => Coll(nftIndex))
 
     val nftRaritiesAndAmounts: Coll[(Byte, Int)] = nftPoolStateBox.R5[Coll[(Byte, Int)]].get
     val rarities: Coll[Byte] = nftRaritiesAndAmounts.flatMap({ rarityAndAmount: (Byte, Int) => rarityAndAmount._1 })
+    
     val tokenRarityPoolSizes: Coll[Int] = nftRaritiesAndAmounts.flatMap({ rarityAndAmount: (Byte, Int) => rarityAndAmount._2 })
     
-    val tokenRarityPackSizes: Coll[Byte] = nftPoolStateBox.R6[Coll[Byte]].get    
+    val tokenRarityPackSizes: Coll[Byte] = nftPoolStateBox.R6[Coll[Byte]].get
+    val tokenRarityPackSizesTemp: Coll[Byte] = Coll[Byte](0.toByte).append(tokenRarityPackSizes)  
     
     val tokenRarityIndexCollection: Coll[Coll[Coll[Int]]] = nftIndexCollection.slice(0, nftRaritiesAndAmounts.size).map(indexColl: Coll[Int] => Coll(indexColl))
-    val tokenPoolTemp: Coll[Coll[(Coll[Byte], Long)]] = tokenRarityIndexCollection.fold(Coll(Coll((Coll(0.toByte), 0L))), { (acc: Coll[Coll[(Coll[Byte], Long)]], tokenRarityIndexColl: Coll[Coll[Int]]) => acc ++ Coll(nftCollection.slice(acc.size-1, tokenRarityPackSizes(acc.size-1))) })
+    val tokenPoolTemp: Coll[Coll[(Coll[Byte], Long)]] = tokenRarityIndexCollection.fold(Coll[Coll[(Coll[Byte], Long)]](Coll[(Coll[Byte], Long)]((Coll[Byte](0.toByte), 0L))), { (acc: Coll[Coll[(Coll[Byte], Long)]], tokenRarityIndexColl: Coll[Coll[Int]]) => acc ++ Coll(nftCollection.slice(tokenRarityPackSizesTemp(acc.size-1), tokenRarityPackSizesTemp(acc.size))) })
     val tokenPool: Coll[Coll[(Coll[Byte], Long)]] = tokenPoolTemp.slice(1, tokenPoolTemp.size)
 
     val tokenRarityPackCollection: Coll[Coll[Coll[Byte]]] = tokenRarityPackSizes.map((tokenRarityPackSize: Byte) => Coll(Coll(tokenRarityPackSize)))    
-    val randomIndicesForTokenRarityPackSelectionTemp: Coll[Coll[BigInt]] = tokenRarityPackCollection.fold(Coll(Coll(0.toBigInt)), { (acc: Coll[Coll[BigInt]], elem: Coll[Coll[Byte]]) => acc ++ Coll( gen( elem(0)(0), tokenRarityPoolSizes(acc.size-1), acc(acc.size-1)(acc(acc.size-1).size-1), randomness) ) })
-    val randomIndicesForTokenRarityPackSelection:Coll[Coll[BigInt]] = randomNumbersForTokenRarityPackSelectionTemp.slice(1, randomNumbersForTokenRarityPackSelectionTemp.size)
+    val randomIndicesForTokenRarityPackSelectionTemp: Coll[Coll[BigInt]] = tokenRarityPackCollection.fold(Coll[Coll[BigInt]](Coll[BigInt](-1.toBigInt)), { (acc: Coll[Coll[BigInt]], elem: Coll[Coll[Byte]]) => acc ++ Coll( gen( elem(0)(0), tokenRarityPoolSizes(acc.size-1), acc(acc.size-1)(acc(acc.size-1).size-1), randomness) ) })
+    val randomIndicesForTokenRarityPackSelection: Coll[Coll[BigInt]] = randomNumbersForTokenRarityPackSelectionTemp.slice(1, randomNumbersForTokenRarityPackSelectionTemp.size)
 
     val tokenPoolANDRandomIndicesForTokenRarityPackSelection: Coll[(Coll[(Coll[Byte], Long)], Coll[BigInt])] = tokenPool.zip(randomIndicesForTokenRarityPackSelection)
     val tokenPack: Coll[Coll[(Coll[Byte], Long)]] = tokenPoolANDRandomIndicesForTokenRarityPackSelection.map( tokenPoolAndRandomIndices: (Coll[(Coll[Byte], Long)], Coll[BigInt]) => tokenPoolAndRandomIndices._2.map( randomIndex: BigInt => tokenPoolAndRandomIndices._1(randomIndex) ) )
  
     val validNFTSaleTx: Boolean = {
-
-
 
     }
 
@@ -51,8 +51,8 @@
 
     def draw(prev: BigInt, tokenRarityPoolSize: Int): BigInt = {
 
-        val a: BigInt = byteArrayToBigInt(ergopadRNGOracleDataInputBox.id)
-        val b: BigInt = byteArrayToBigInt(nftPoolStateBox.id)
+        val a: BigInt = byteArrayToBigInt(nftPoolStateBox.id)
+        val b: BigInt = byteArrayToBigInt(SELF.id)
         val next: BigInt = (a*prev + b) % tokenRarityPoolSize.toBigInt
         next
 
@@ -60,10 +60,11 @@
 
     def gen(tokenRarityPackSize: Byte, tokenRarityPoolSize: Int, prev: BigInt, init: BigInt): Coll[BigInt] = {
         
-        val seed: BigInt = if ( (prev == 0) || (prev == init) ) init else draw(prev, tokenRarityPoolSize)
+        val seed: BigInt = if ( (prev == -1) || (prev == init) ) draw(init, tokenRarityPoolSize) else draw(prev, tokenRarityPoolSize)
         val iterableCollection: Coll[Coll[Int]] = nftIndexCollection.slice(0, tokenRarityPackSize)
         val randomNumbers: Coll[BigInt] = iterableCollection.fold(Coll(seed), { (acc: Coll[BigInt], elem: Coll[Int]) => acc ++ Coll(draw(acc(acc.size-1), tokenRarityPoolSize)) }) 
         randomNumbers.slie(0, randomNumbers.size-1)
+
     } 
 
 }
