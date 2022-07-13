@@ -32,7 +32,6 @@
     val TxOperatorFee: Long = _TxOperatorFee
     val MinerFee: Long = _MinerFee
     val NFTSaleCost: Long = MinERGForExistance + NFTPrice + TxOperatorFee + MinerFee
-    val blockDelay: Byte = 5
     val ErgoPadRNGOracleBoxContractHash: Coll[Byte] = blake2b256(_ErgoPadRNGORacleBoxContract)
     val NFTPoolStateBoxContractHash: Coll[Byte] = blake2b256(_NFTPoolStateBoxContract)
     val NFTPoolBoxContractHash: Coll[Byte] = blake2b256(_NFTPoolBoxContract)
@@ -44,18 +43,18 @@
     if (isNFTSaleTx) {
 
         // ===== Data Inputs ===== //
-        val ergopadRNGOracleBox: Box = dataInputs(0)
+        val ergopadRNGOracleBox: Box = dataInputs(0)  // ErgoPad oracle containing random number from drand.love network
 
         // ===== Inputs ===== //
-        val nftPoolStateBoxIN: Box = INPUTS(0)
-        val nftPoolBoxesIN: Coll[Box] = INPUTS.slice(1, INPUTS.size-1)
-        val nftSaleProxyBoxIN: Box = INPUTS(INPUTS.size-1)
+        val nftPoolStateBoxIN: Box = INPUTS(0)                          // Pool state box containing information about the NFT sale
+        val nftPoolBoxesIN: Coll[Box] = INPUTS.slice(1, INPUTS.size-1)  // Boxes containing the different NFTs
+        val nftSaleProxyBoxIN: Box = INPUTS(INPUTS.size-1)              // Proxy box containing the buyer's funds and/or their whitelist token
 
         // ===== Outputs ===== //
         val nftPoolStateBoxOUT: Box = OUTPUTS(0)
-        val nftPoolBoxesOUT: Coll[Box] = OUTPUTS.slice(1, OUTPUTS,size-3)
+        val nftPoolBoxesOUT: Coll[Box] = OUTPUTS.slice(1, OUTPUTS,size-3)  
         val buyerPKBoxOUT: Box = OUTPUTS(OUTPUTS.size-3)
-        val txOperatorBoxOUT: Box = OUTPUTS(OUTPUTS.size-2)
+        val txOperatorBoxOUT: Box = OUTPUTS(OUTPUTS.size-2)                
         val minerBox: Box = OUTPUTS(OUTPUTS.size-1)
 
         // ===== Relevant Variables ===== //
@@ -66,16 +65,17 @@
         val mintAddress: Coll[Byte] = nftPoolStateBoxIN.R4[Coll[Byte]].get
         
         val nftRaritiesAndAmounts: Coll[(Byte, Int)] = nftPoolStateBoxIN.R5[Coll[(Byte, Int)]].get
-        val rarities: Coll[Byte] = nftRaritiesAndAmounts.flatMap({ rarityAndAmount: (Byte, Int) => rarityAndAmount._1 })
-        val tokenRarityPoolSizes: Coll[Int] = nftRaritiesAndAmounts.flatMap({ rarityAndAmount: (Byte, Int) => rarityAndAmount._2 })
+        val rarities: Coll[Byte] = nftRaritiesAndAmounts.flatMap({ rarityAndAmount: (Byte, Int) => rarityAndAmount._1 })             // Defaults to 0 since all NFTs are of the same rarity/ordering/partition type
+        val tokenRarityPoolSizes: Coll[Int] = nftRaritiesAndAmounts.flatMap({ rarityAndAmount: (Byte, Int) => rarityAndAmount._2 })  // The amount of NFTs belonging to a particular rarity/ordering/partition
         
-        val tokenRarityPackSizes: Coll[Byte] = nftPoolStateBoxIN.R6[Coll[Byte]].get
+        val tokenRarityPackSizes: Coll[Byte] = nftPoolStateBoxIN.R6[Coll[Byte]].get  // Defaults to 1 since only one NFT is given to the user
         val totalNFTAmount: Int = nftPoolStateBoxIN.R7[Int].get
-        val remainingNFTAmount: Int = nftPoolStateBoxIN.R8[Int].get
+        val remainingNFTAmount: Int = nftPoolStateBoxIN.R8[Int].get  // At the beginning of the sale, this value is equal to the totalNFTAmount
 
-        val randomIndexForTokenPoolSelection: BigInt = draw(randomness, remainingNFTAmount)
-        val nft: (Coll[Byte], Long) = nftCollection(randomIndexForTokenPoolSelection)
+        val randomIndexForTokenPoolSelection: BigInt = draw(randomness, remainingNFTAmount)  // An index is generated using the random number from the oracle
+        val nft: (Coll[Byte], Long) = nftCollection(randomIndexForTokenPoolSelection.toInt)
 
+        // Check conditions for a valid NFT sale
         val valid_NFTSaleTx: Boolean = {
 
             val valid_RNGOracleBox: Boolean = {
@@ -85,24 +85,21 @@
                 }
 
                 val valid_RNGOracleNFT: Boolean = {
-                    val rngOracleNFT: Coll[Byte] = ergopadRNGOracleBox.tokens(0).get._1
-                    (rngOracleNFT == ErgoPadRNGOracleNFT)
-                }
 
-                val valid_Randomness: Boolean = {
-                    val blockHeight: Int = CONTEXT.preheader.height
-                    val rngOracleBoxHeight: Int = ergopadRNGOracleBox.creationInfo._1
-                    (rngOracleBoxHeight < blockheight - BlockDelay)
+                    val rngOracleNFT: Coll[Byte] = ergopadRNGOracleBox.tokens(0).get._1
+                    
+                    (rngOracleNFT == ErgoPadRNGOracleNFT)
+                
                 }
 
                 allOf(Coll(
-                    valid_RNGOracleNFT,
-                    valid_Randomness
+                    valid_Contract,
+                    valid_RNGOracleNFT                                                        
                 ))
 
             }
 
-            val valid_NFTPoolSateBoxReplication: Boolean = {\
+            val valid_NFTPoolSateBoxReplication: Boolean = {
 
                 val valid_Value: Boolean = {
                     (nftPoolStateBoxIN.value == nftPoolStateBoxOUT)
@@ -125,12 +122,14 @@
                     }
 
                     val valid_WhitelistNFT: Boolean = {
+
                         if (WhitelistNFT.isDefined) { 
                             allOf(Coll(
                                 (nftPoolStateBoxIN.tokens(1) == (WhitelistNFT, 1L)),
                                 (nftPoolSateBox_OUT.tokens(1) == nftPoolStateBoxIN.tokens(1))
                             ))
                         } else true
+                    
                     }
 
                     allOf(Coll(
@@ -190,7 +189,14 @@
                     }
 
                     val valid_NFTRemoval: Boolean = {
-                        (nftPoolBoxesOUT.tokens.size == nftPoolBoxIN.tokens.size - 1) 
+                        
+                        val totalTokensInOutputPool: Int = nftPoolBoxesOUT.fold(0.toInt, { nftPoolBoxOUT: Box => nftPoolBoxesOUT.tokens.size + acc })
+                        
+                        allOf(Coll(
+                            (remainingNFTAmount > 0),
+                            (totalTokensInOutputPool == remainingNFTAmount - 1) 
+                        ))
+                    
                     }
 
                     allOf(Coll(
@@ -200,38 +206,48 @@
 
                 }
 
-                val valid_InputIndex: Boolean = {
+                // Check that the input and output indices of the pool boxes remain constant from each NFT sale tx to the next
+                val valid_OrderingPreservation: Boolean = {
+
+                    val valid_InputIndex: Boolean = {
                     
-                    val inputIndices: Coll[Int] = nftPoolBoxesIN.indices
-                    val nftPoolBoxesINANDInputIndices: Coll[(Box, Int)] = nftPoolBoxesIN.zip(inputIndices)
-                    val prefix: Coll[Byte] = Coll(0.toByte, 0.toByte, 0.toByte, 0.toByte)
+                        val inputIndices: Coll[Int] = nftPoolBoxesIN.indices
+                        val nftPoolBoxesINANDInputIndices: Coll[(Box, Int)] = nftPoolBoxesIN.zip(inputIndices)
+                        val prefix: Coll[Byte] = Coll(0.toByte, 0.toByte, 0.toByte, 0.toByte)
 
-                    nftPoolBoxesINANDInputIndices.forall({ nftPoolBoxINANDInputIndex: (Box, Int) => 
-                        
-                        val nftPoolBoxINIndexBytes: Coll[Byte] = nftPoolBoxINANDInputIndex._1.creationInfo._2.slice(32, 36)
-                        val nftPoolBoxINIndex: Coll[Byte] = byteArrayToLong(prefix.append(nftPoolBoxINIndexBytes)).toInt
+                        nftPoolBoxesINANDInputIndices.forall({ nftPoolBoxINANDInputIndex: (Box, Int) => 
+                            
+                            val nftPoolBoxINIndexBytes: Coll[Byte] = nftPoolBoxINANDInputIndex._1.creationInfo._2.slice(32, 36)
+                            val nftPoolBoxINIndex: Coll[Byte] = byteArrayToLong(prefix.append(nftPoolBoxINIndexBytes)).toInt
 
-                        (nftPoolBoxINIndex == nftPoolBoxINANDInputIndex._2)
+                            (nftPoolBoxINIndex == nftPoolBoxINANDInputIndex._2)
 
-                    })    
+                        })    
 
-                }
+                    }
                 
-                val valid_OutputIndex: Boolean = {
-                    
-                    val boxIndices: Coll[Int] = if (nftPoolBoxesIN.size == nftPoolBoxesOUT.size) nftPoolBoxesIN.indices else nftPoolBoxesIN.indices.slice(0, nftPoolBoxesIN.indices.size-1)
-                    val nftPoolBoxesOUTANDBoxIndices: Coll[(Box, Int)] = nftPoolBoxesOUT.zip(boxIndices)
-                    val prefix: Coll[Byte] = Coll(0.toByte, 0.toByte, 0.toByte, 0.toByte)
+                    val valid_OutputIndex: Boolean = {
+                        
+                        val boxIndices: Coll[Int] = if (nftPoolBoxesIN.size == nftPoolBoxesOUT.size) nftPoolBoxesIN.indices else nftPoolBoxesIN.indices.slice(0, nftPoolBoxesIN.indices.size-1)
+                        val nftPoolBoxesOUTANDBoxIndices: Coll[(Box, Int)] = nftPoolBoxesOUT.zip(boxIndices)
+                        val prefix: Coll[Byte] = Coll(0.toByte, 0.toByte, 0.toByte, 0.toByte)
 
-                    nftPoolBoxesOUTANDInputIndices.forall({ nftPoolBoxOUTANDBoxIndex: (Box, Int) => 
-                    
-                        val nftPoolBoxOUTIndexBytes: Coll[Byte] = nftPoolBoxOUTANDBoxIndex._1.creationInfo._2.slice(32, 36)
-                        val nftPoolBoxOUTIndex: Coll[Byte] = byteArrayToLong(prefix.append(nftPoolBoxOUTIndexBytes)).toInt
+                        nftPoolBoxesOUTANDInputIndices.forall({ nftPoolBoxOUTANDBoxIndex: (Box, Int) => 
+                        
+                            val nftPoolBoxOUTIndexBytes: Coll[Byte] = nftPoolBoxOUTANDBoxIndex._1.creationInfo._2.slice(32, 36)
+                            val nftPoolBoxOUTIndex: Coll[Byte] = byteArrayToLong(prefix.append(nftPoolBoxOUTIndexBytes)).toInt
 
-                        (nftPoolBoxOUTIndex == nftPoolBoxOUTANDBoxIndex._2)
+                            (nftPoolBoxOUTIndex == nftPoolBoxOUTANDBoxIndex._2)
 
-                    })    
-                    
+                        })    
+                        
+                    }
+
+                    allOf(Coll(
+                        valid_InputIndex,
+                        valid_OutputIndex
+                    ))
+
                 }
 
                 val valid_MintAddress: Boolean = {
@@ -245,9 +261,7 @@
                     valid_Value,
                     valid_Contract,
                     valid_Tokens,
-                    valid_InputIndex,
-                    valid_OutputIndex,
-
+                    valid_OrderingPreservation
                 ))
 
             }
@@ -259,16 +273,29 @@
                 }
 
                 val valid_WhitelistNFT: Boolean = {
+
                     if (WhitelistNFT.isDefined) {
                         (SELF.tokens(0) == (WhitelistNFT, 1L))
                     } else {
                         true
                     }
+                    
+                }
+
+                // Check that the randomness used is generated after the user has submitted their funds to the proxy so they cannot determine a priori what NFT they will obtain
+                val valid_Randomness: Boolean = {
+
+                    val ergopadRNGOracleBoxHeight: Int = ergopadRNGOracleBox.creationInfo._1
+                    val nftSaleProxyBoxInHeight: Int = SELF.creationInfo._1
+                    
+                    (nftSaleProxyBoxInHeight < ergopadRNGOracleBoxHeight)
+                
                 }
 
                 allOf(Coll(
                     valid_NFTSaleCost,
-                    valid_WhitelistNFT
+                    valid_WhitelistNFT,
+                    valid_Randomness
                 ))
 
             }
@@ -283,6 +310,7 @@
                     (buyerPKBoxOUT.propositionBytes == BuyerPK.propBytes)
                 }
 
+                // Check that the user receives their NFT, their previous whitelist token, if required for the sale, is burned.
                 valid_Tokens: Boolean = {
                     (buyerPKBoxOUT.tokens == Coll(nft))
                 }
@@ -421,6 +449,7 @@
         val a: BigInt = byteArrayToBigInt(nftPoolStateBoxIN.id)
         val b: BigInt = byteArrayToBigInt(SELF.id)
         val next: BigInt = (a*seed + b) % remainingNFTAmount.toBigInt
+        
         next
     
     }
