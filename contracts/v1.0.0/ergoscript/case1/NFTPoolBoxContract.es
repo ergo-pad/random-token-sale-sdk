@@ -218,7 +218,20 @@
             }
 
             val valid_MinerBox: Boolean = {
-                (minerBox.value == MinerFee)
+                
+                val valid_Value: Boolean = {
+                    (minerBox.value == MinerFee)
+                }
+
+                val valid_Tokens: Boolean = {
+                    (minerBox.tokens == Coll[(Coll[Byte], Long)]())
+                }
+
+                allOf(Coll(
+                    valid_Value,
+                    valid_Tokens
+                ))
+
             }
 
 
