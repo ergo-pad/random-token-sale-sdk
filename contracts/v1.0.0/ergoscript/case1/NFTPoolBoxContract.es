@@ -14,7 +14,7 @@
     // Outputs: NFTPoolStateBox, NFTPoolBoxes, BuyerPKBox, TxOperatorBox
 
     // ===== Sale End Tx ===== //
-    // Description: The sale period has expired and all tokens must be burned
+    // Description: The sale period has expired and all input tokens must be burned.
     // DataInputs: None
     // Inputs: NFTPoolBoxes
     // Context Extension Variables: None
@@ -210,11 +210,9 @@
 
                 }
 
+                // All input tokens must be burned
                 val valid_Tokens: Boolean = {
-
-                    // All input tokens are burned
                     (withdrawBox.tokens == Coll[(Coll[Byte], Long)]())
-
                 }
 
                 allOf(Coll(
@@ -230,6 +228,7 @@
                     (minerBox.value == MinerFee)
                 }
 
+                // All input tokens must be burned
                 val valid_Tokens: Boolean = {
                     (minerBox.tokens == Coll[(Coll[Byte], Long)]())
                 }
