@@ -13,6 +13,13 @@
     // Context Extension Variables: None
     // Outputs: NFTPoolStateBox, NFTPoolBoxes, BuyerPKBox, TxOperatorBox
 
+    // ===== Sale End Tx ===== //
+    // Description: The sale period has expired and all tokens must be burned
+    // DataInputs: None
+    // Inputs: NFTPoolBoxes
+    // Context Extension Variables: None
+    // Outputs: WithdrawBox, MinerBox
+
     // ===== Hard-Coded Constants ===== //
     val MintAddress: Coll[Byte] = _MintAddress
     val NFTPoolNFT: Coll[Byte] = _NFTPoolNFT
