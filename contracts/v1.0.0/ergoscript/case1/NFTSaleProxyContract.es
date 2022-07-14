@@ -28,9 +28,9 @@
     val BuyerPK: SigmaProp = _BuyerPK
     val TxOperatorPK: SigmaProp = _TxOperatorPK
     val NFTPrice: Long = _NFTPrice
-    val MinERGForExistence: Long = 1000000
+    val MinERGForExistence: Long = 1000000L
     val TxOperatorFee: Long = _TxOperatorFee
-    val MinerFee: Long = _MinerFee
+    val MinerFee: Long = MinERGForExistance
     val NFTSaleCost: Long = MinERGForExistance + NFTPrice + TxOperatorFee + MinerFee
     val ErgoPadRNGOracleBoxContractHash: Coll[Byte] = blake2b256(_ErgoPadRNGORacleBoxContract)
     val NFTPoolStateBoxContractHash: Coll[Byte] = blake2b256(_NFTPoolStateBoxContract)
@@ -159,109 +159,6 @@
                     valid_Tokens,
                     valid_MintAddress,
                     valid_RemainingNFTAmount
-                ))
-
-            }
-
-            val valid_NFTPoolBoxReplication: Boolean = {
-
-                val valid_Value: Boolean = {
-                    allOf(Coll(
-                        nftPoolBoxesIN.forall({ nftPoolBoxIN: Box => nftPoolBoxIN.value == MinERGForExistance }),
-                        nftPoolBoxesOUT.forall({ nftPoolBoxOUT: Box => nftPoolBoxOUT.value == MinERGForExistance })
-                    ))
-                }
-
-                val valid_Contract: Boolean = {
-                    allOf(Coll(
-                        nftPoolBoxesIN.forall({ nftPoolBoxIN: Box => blake2b256(nftPoolBoxIN.propositionBytes) == NFTPoolBoxContractHash }),
-                        nftPoolBoxesOUT.forall({ nftPoolBoxOUT: Box => blake2b256(nftPoolBoxOUT.propositionBytes) == NFTPoolBoxContractHash })
-                    ))
-                }
-
-                val valid_Tokens: Boolean = {
-
-                    val valid_NFTPoolToken: Boolean = {
-                        allOf(Coll(
-                            nftPoolBoxesIN.forall({ nftPoolBoxIN: Box => nftPoolBoxIN.tokens(0) == (NFTPoolNFT, 1L) }),
-                            nftPoolBoxesOUT.forall({ nftPoolBoxOUT: Box => nftPoolBoxOUT.tokens(0) == (NFTPoolNFT, 1L) })
-                        ))
-                    }
-
-                    val valid_NFTRemoval: Boolean = {
-                        
-                        val totalTokensInOutputPool: Int = nftPoolBoxesOUT.fold(0.toInt, { nftPoolBoxOUT: Box => nftPoolBoxesOUT.tokens.size + acc })
-                        
-                        allOf(Coll(
-                            (remainingNFTAmount > 0),
-                            (totalTokensInOutputPool == remainingNFTAmount - 1) 
-                        ))
-                    
-                    }
-
-                    allOf(Coll(
-                        valid_NFTPoolToken,
-                        valid_NFTRemoval
-                    ))
-
-                }
-
-                // Check that the input and output indices of the pool boxes remain constant from each NFT sale tx to the next
-                val valid_OrderingPreservation: Boolean = {
-
-                    val valid_InputIndex: Boolean = {
-                    
-                        val inputIndices: Coll[Int] = nftPoolBoxesIN.indices
-                        val nftPoolBoxesINANDInputIndices: Coll[(Box, Int)] = nftPoolBoxesIN.zip(inputIndices)
-                        val prefix: Coll[Byte] = Coll(0.toByte, 0.toByte, 0.toByte, 0.toByte)
-
-                        nftPoolBoxesINANDInputIndices.forall({ nftPoolBoxINANDInputIndex: (Box, Int) => 
-                            
-                            val nftPoolBoxINIndexBytes: Coll[Byte] = nftPoolBoxINANDInputIndex._1.creationInfo._2.slice(32, 36)
-                            val nftPoolBoxINIndex: Coll[Byte] = byteArrayToLong(prefix.append(nftPoolBoxINIndexBytes)).toInt
-
-                            (nftPoolBoxINIndex == nftPoolBoxINANDInputIndex._2)
-
-                        })    
-
-                    }
-                
-                    val valid_OutputIndex: Boolean = {
-                        
-                        val boxIndices: Coll[Int] = if (nftPoolBoxesIN.size == nftPoolBoxesOUT.size) nftPoolBoxesIN.indices else nftPoolBoxesIN.indices.slice(0, nftPoolBoxesIN.indices.size-1)
-                        val nftPoolBoxesOUTANDBoxIndices: Coll[(Box, Int)] = nftPoolBoxesOUT.zip(boxIndices)
-                        val prefix: Coll[Byte] = Coll(0.toByte, 0.toByte, 0.toByte, 0.toByte)
-
-                        nftPoolBoxesOUTANDInputIndices.forall({ nftPoolBoxOUTANDBoxIndex: (Box, Int) => 
-                        
-                            val nftPoolBoxOUTIndexBytes: Coll[Byte] = nftPoolBoxOUTANDBoxIndex._1.creationInfo._2.slice(32, 36)
-                            val nftPoolBoxOUTIndex: Coll[Byte] = byteArrayToLong(prefix.append(nftPoolBoxOUTIndexBytes)).toInt
-
-                            (nftPoolBoxOUTIndex == nftPoolBoxOUTANDBoxIndex._2)
-
-                        })    
-                        
-                    }
-
-                    allOf(Coll(
-                        valid_InputIndex,
-                        valid_OutputIndex
-                    ))
-
-                }
-
-                val valid_MintAddress: Boolean = {
-                    allOf(Coll(
-                        nftPoolBoxesIN.forall({ nftPoolBoxIN: Box => nftPoolBoxIN.R4[Coll[Byte]].get == MintAddress })
-                        nftPoolBoxesOUT.forall({ nftPoolBoxOUT: Box => nftPoolBoxOUT.R4[Coll[Byte]].get == MintAddress })
-                    ))
-                }
-
-                allOf(Coll(
-                    valid_Value,
-                    valid_Contract,
-                    valid_Tokens,
-                    valid_OrderingPreservation
                 ))
 
             }
