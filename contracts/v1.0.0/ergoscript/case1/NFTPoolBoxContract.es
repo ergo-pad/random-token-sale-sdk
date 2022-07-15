@@ -30,7 +30,7 @@
 
     // ===== Spending Path Check ===== //
     val isNFTSaleTx: Boolean = (INPUTS.size > 1)
-    val isSaleEnd: Boolean = (OUTPUTS.size == 2)
+    val isNFTSaleEnd: Boolean = (OUTPUTS.size == 2)
     
     if (isNFTSaleTx) {
 
@@ -67,6 +67,7 @@
                         val nftPoolBoxIN: Box = nftPoolBoxINANDBoxIndex._1
                         val boxIndex: Int = nftPoolBoxINANDBoxIndex._2
                 
+                        // NOTE: Twice the minimum ERG for existance in case only one box remains at the end of the sale period.
                         val valid_Value: Boolean = (nftPoolBoxIN.value == MinERGForExistance * 2.toLong)
                         
                         val valid_Contract: Boolean = (nftPoolBoxIN.propositionBytes == SELF.propositionBytes)
@@ -110,6 +111,7 @@
                         val nftPoolBoxesOUT: Box = nftPoolBoxOUTANDBoxIndex._1
                         val boxIndex: Int = nftPoolBoxOUTANDBoxIndex._2
 
+                        // NOTE: Twice the minimum ERG for existance in case only one box remains at the end of the sale period.
                         val valid_Value: Boolean = (nftPoolBoxOUT.value == MinERGForExistance * 2.toLong)
 
                         val valid_Contract: Boolean = (nftPoolBoxOUT.propositionBytes == SELF.propositionBytes)
@@ -180,7 +182,7 @@
 
         sigmaProp(valid_NFTSaleTx)
 
-    } else if (isSaleEnd) {
+    } else if (isNFTSaleEnd) {
 
         // ===== Inputs ===== //
         val nftPoolBoxesIN: Coll[Box] = INPUTS
@@ -190,7 +192,7 @@
         val minerBox: Box = OUTPUTS(1)
 
         // Check conditions for a valid sale end transaction, which occurs if not all NFTs in the pool have been sold after the sale period has expired.
-        val valid_SaleEndTx: Boolean = {
+        val valid_NFTSaleEndTx: Boolean = {
 
             val valid_TimeExpired: Boolean = {
 
@@ -249,7 +251,7 @@
 
         }
 
-        sigmaProp(valid_SaleEndTx)
+        sigmaProp(valid_NFTSaleEndTx)
 
     } else {
         sigmaProp(false)
