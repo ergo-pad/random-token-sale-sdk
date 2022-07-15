@@ -223,6 +223,7 @@
 
             val valid_TxOperatorBox: Boolean = {
 
+                // NOTE: When the amount of output NFT pool boxes is less than the amount of input NFT pool boxes, the ERG change will go to the tx operator PK.
                 valid_Value: Boolean = {
                     (txOperatorBoxOUT.value == TxOperatorFee)
                 }
@@ -310,7 +311,6 @@
 
             val valid_TxOperatorBox: Boolean = {
                 
-                // Note: When the amount of output NFT pool boxes is less than the amount of input NFT pool boxes, the ERG change will go to the tx operator PK.
                 valid_Value: Boolean = {
                     (txOperatorBoxOUT.value == TxOperatorFee)
                 }
