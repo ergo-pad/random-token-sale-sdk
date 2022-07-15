@@ -27,6 +27,7 @@
     val MinERGForExistance: Long = 1000000L
     val BlockHeightLimit: Int = _BlockHeightLimit
     val MinerFee: Long = MinERGForExistance
+    val NFTPoolStateBoxContractHash: Coll[Byte] = blake2b256(_NFTPoolStateBoxContract)
 
     // ===== Spending Path Check ===== //
     val isNFTSaleTx: Boolean = (INPUTS.size > 1)
