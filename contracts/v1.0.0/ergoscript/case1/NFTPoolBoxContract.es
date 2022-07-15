@@ -30,7 +30,7 @@
 
     // ===== Spending Path Check ===== //
     val isNFTSaleTx: Boolean = (INPUTS.size > 1)
-    val isNFTSaleEnd: Boolean = (OUTPUTS.size == 2)
+    val isNFTSaleEndTx: Boolean = (OUTPUTS.size == 2)
     
     if (isNFTSaleTx) {
 
@@ -182,13 +182,14 @@
 
         sigmaProp(valid_NFTSaleTx)
 
-    } else if (isNFTSaleEnd) {
+    } else if (isNFTSaleEndTx) {
 
         // ===== Inputs ===== //
-        val nftPoolBoxesIN: Coll[Box] = INPUTS
+        val nftPoolStateBoxIN: Box = INPUTS(0)
+        val nftPoolBoxesIN: Coll[Box] = INPUTS.slice(1, INPUTS.size)
 
         // ===== Outputs ===== //
-        val withdrawBox: Box = OUTPUTS(0)
+        val txOperatorBox: Box = OUTPUTS(0)
         val minerBox: Box = OUTPUTS(1)
 
         // Check conditions for a valid sale end transaction, which occurs if not all NFTs in the pool have been sold after the sale period has expired.
@@ -202,19 +203,19 @@
 
             }
 
-            val valid_WithdrawBox: Boolean = {
+            val valid_TxOperatorBox: Boolean = {
 
                 val valid_Value: Boolean = {
 
-                    val inputValue: Long = nftPoolBoxesIN.fold(0L, { (acc: Long, nftPoolBoxIN: Box) => nftPoolBoxesIN.value + acc })
+                    val inputValue: Long = INPUTS.fold(0L, { (acc: Long, input: Box) => input.value + acc })
 
-                    (withdrawBox.value == inputValue - SaleEndMinerFee)
+                    (txOperatorBox.value == inputValue - MinerFee)
 
                 }
 
                 // All input tokens must be burned
                 val valid_Tokens: Boolean = {
-                    (withdrawBox.tokens == Coll[(Coll[Byte], Long)]())
+                    (txOperatorBox.tokens == Coll[(Coll[Byte], Long)]())
                 }
 
                 allOf(Coll(
@@ -241,7 +242,6 @@
                 ))
 
             }
-
 
             allOf(Coll(
                 valid_TimeExpired,
