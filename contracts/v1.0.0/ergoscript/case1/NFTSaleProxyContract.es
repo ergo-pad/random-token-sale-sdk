@@ -35,6 +35,7 @@
     val ErgoPadRNGOracleBoxContractHash: Coll[Byte] = blake2b256(_ErgoPadRNGORacleBoxContract)
     val NFTPoolStateBoxContractHash: Coll[Byte] = blake2b256(_NFTPoolStateBoxContract)
     val NFTPoolBoxContractHash: Coll[Byte] = blake2b256(_NFTPoolBoxContract)
+    val BlockHeightLimit: Int = _BlockHeightLimit
 
     // ===== Spending Path Check ===== //
     val isNFTSaleTx: Boolean = (INPUTS.size > 1)
@@ -245,6 +246,14 @@
 
             }
 
+            val valid_TimeRemaining: Boolean = {
+
+                val currentBlockHeight: Int = CONTEXT.preHeader.height
+
+                (currentBlockHeight <= BlockHeightLimit)
+
+            }
+
             allOf(Coll(
                 valid_RNGOracleBox,
                 valid_NFTPoolSateBoxReplication,
@@ -252,7 +261,8 @@
                 valid_NFTSaleProxyBox,
                 valid_BuyerPKBox,
                 valid_TxOperatorBox, 
-                valid_MinerBox
+                valid_MinerBox,
+                valid_TimeRemaining
             ))
 
         }

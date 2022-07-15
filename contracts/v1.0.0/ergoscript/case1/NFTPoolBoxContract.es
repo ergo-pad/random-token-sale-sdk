@@ -201,6 +201,23 @@
 
             }
 
+            val valid_Inputs: Boolean = {
+
+                val valid_NFTPoolSateBoxIN: Boolean = {
+                    (blake2b256(nftPoolStateBoxIN.propositionBytes) == _NFTPoolStateBoxContract)
+                }
+
+                val valid_NFTPoolBoxesIN: Boolean = {
+                    (nftPoolBoxesIN.forall({ nftPoolBoxIN: Box => nftPoolBoxesIN.propositionBytes == SELF.propositionBytes }))
+                }
+
+                allOf(Coll(
+                    valid_NFTPoolStateBoxIN,
+                    valid_NFTPoolBoxesIN
+                ))
+
+            }
+
             val valid_TxOperatorBox: Boolean = {
 
                 val valid_Value: Boolean = {
@@ -243,7 +260,8 @@
 
             allOf(Coll(
                 valid_TimeExpired,
-                valid_WithdrawBox,
+                valid_Inputs,
+                valid_TxOperatorBox,
                 valid_MinerBox
             ))
 
