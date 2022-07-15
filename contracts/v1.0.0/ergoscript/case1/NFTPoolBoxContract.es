@@ -67,8 +67,7 @@
                         val nftPoolBoxIN: Box = nftPoolBoxINANDBoxIndex._1
                         val boxIndex: Int = nftPoolBoxINANDBoxIndex._2
                 
-                        // NOTE: Twice the minimum ERG for existance in case only one box remains at the end of the sale period.
-                        val valid_Value: Boolean = (nftPoolBoxIN.value == MinERGForExistance * 2.toLong)
+                        val valid_Value: Boolean = (nftPoolBoxIN.value == MinERGForExistance)
                         
                         val valid_Contract: Boolean = (nftPoolBoxIN.propositionBytes == SELF.propositionBytes)
 
@@ -111,8 +110,7 @@
                         val nftPoolBoxesOUT: Box = nftPoolBoxOUTANDBoxIndex._1
                         val boxIndex: Int = nftPoolBoxOUTANDBoxIndex._2
 
-                        // NOTE: Twice the minimum ERG for existance in case only one box remains at the end of the sale period.
-                        val valid_Value: Boolean = (nftPoolBoxOUT.value == MinERGForExistance * 2.toLong)
+                        val valid_Value: Boolean = (nftPoolBoxOUT.value == MinERGForExistance)
 
                         val valid_Contract: Boolean = (nftPoolBoxOUT.propositionBytes == SELF.propositionBytes)
 
