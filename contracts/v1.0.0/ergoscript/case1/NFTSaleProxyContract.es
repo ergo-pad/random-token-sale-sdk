@@ -127,7 +127,7 @@
                         if (WhitelistNFT.isDefined) { 
                             allOf(Coll(
                                 (nftPoolStateBoxIN.tokens(1) == (WhitelistNFT, 1L)),
-                                (nftPoolSateBox_OUT.tokens(1) == nftPoolStateBoxIN.tokens(1))
+                                (nftPoolSateBoxOUT.tokens(1) == nftPoolStateBoxIN.tokens(1))
                             ))
                         } else true
                     
@@ -143,7 +143,7 @@
                 val valid_MintAddress: Boolean = {
                     allOf(Coll(
                         (mintAddress == MintAddress),
-                        (nftPoolSateBox_OUT.R4[Coll[Byte]].get == mintAddress)
+                        (nftPoolSateBoxOUT.R4[Coll[Byte]].get == mintAddress)
                     ))
                 }
 
