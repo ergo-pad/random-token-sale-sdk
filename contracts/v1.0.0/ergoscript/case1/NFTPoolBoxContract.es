@@ -28,6 +28,7 @@
     val BlockHeightLimit: Int = _BlockHeightLimit
     val MinerFee: Long = MinERGForExistance
     val NFTPoolStateBoxContractHash: Coll[Byte] = blake2b256(_NFTPoolStateBoxContract)
+    val IsTokenBurn: Boolean = _IsTokenBurn
 
     // ===== Spending Path Check ===== //
     val isNFTSaleTx: Boolean = (INPUTS.size > 1)
@@ -188,8 +189,9 @@
         val nftPoolBoxesIN: Coll[Box] = INPUTS.slice(1, INPUTS.size)
 
         // ===== Outputs ===== //
-        val txOperatorBox: Box = OUTPUTS(0)
-        val minerBox: Box = OUTPUTS(1)
+        val userPKBox: Box = OUTPUTS(0)
+        val txOperatorBox: Box = if (IsTokenBurn) OUTPUTS(0) else OUTPUTS(1)
+        val minerBox: Box = if (IsTokenBurn) OUTPUTS(1) else OUTPUTS(2)
 
         // Check conditions for a valid sale end transaction, which occurs if not all NFTs in the pool have been sold after the sale period has expired.
         val valid_NFTSaleEndTx: Boolean = {
@@ -219,19 +221,57 @@
 
             }
 
+            val valid_UserPKBox: Boolean = {
+            
+                if (!IsTokenBurn) {
+                    
+                    val valid_Value: Boolean = (userPKBox.value == MinERGForExistance)
+
+                    val valid_PK: Boolean = (userPKBox.propositionBytes == MintAddress)
+
+                    val valid_Tokens: Boolean = {
+
+                        val nftCollection: Coll[(Coll[Byte], Long)] = INPUTS.fold(Coll[(Coll[Byte[], Long])]() , { (acc: Coll[(Coll[Byte], Long)], nftPoolBox: Box) => acc ++ nftPoolBox.tokens.slice(1, nftPoolBoolBox.tokens.size) })
+
+                        (userPKBox.tokens == nftCollection)
+
+                    }
+                
+                } else {
+                    true
+                }
+                
+            }
+
             val valid_TxOperatorBox: Boolean = {
 
                 val valid_Value: Boolean = {
 
                     val inputValue: Long = INPUTS.fold(0L, { (acc: Long, input: Box) => input.value + acc })
 
-                    (txOperatorBox.value == inputValue - MinerFee)
+                    if (IsTokenBurn) {
+
+                        (txOperatorBox.value == inputValue - MinerFee)
+
+                    } else {
+
+                        (txOperatorBox.value == inputValue - MinERGForExistance - MinerFee)
+
+                    }
 
                 }
 
                 // All input tokens must be burned
                 val valid_Tokens: Boolean = {
-                    (txOperatorBox.tokens == Coll[(Coll[Byte], Long)]())
+                    
+                    if (IsTokenBurn) {
+
+                        (txOperatorBox.tokens == Coll[(Coll[Byte], Long)]())
+                    
+                    } else {
+                        true
+                    }
+                
                 }
 
                 allOf(Coll(
@@ -262,6 +302,7 @@
             allOf(Coll(
                 valid_TimeExpired,
                 valid_Inputs,
+                valid_UserPKBox,
                 valid_TxOperatorBox,
                 valid_MinerBox
             ))

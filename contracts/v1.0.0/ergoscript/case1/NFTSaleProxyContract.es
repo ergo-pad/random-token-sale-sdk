@@ -61,7 +61,7 @@
         // ===== Relevant Variables ===== //
         val randomness: BigInt = byteArrayToBigInt(ergopadRNGOracleDataInputBox.R5[Coll[Byte]].get)
         
-        val nftCollection: Coll[(Coll[Byte], Long)] = nftPoolBoxesIN.flatMap({ (nftPoolBox: Box) => nftPoolBox.tokens.slice(1, nftPoolBox.tokens.size) })
+        val nftCollection: Coll[(Coll[Byte], Long)] = nftPoolBoxesIN.fold(Coll[(Coll[Byte], Long)], { (acc: Coll[(Coll[Byte], Long)], nftPoolBox: Box) => acc ++ nftPoolBox.tokens.slice(1, nftPoolBox.tokens.size) })
         
         val mintAddress: Coll[Byte] = nftPoolStateBoxIN.R4[Coll[Byte]].get
         
@@ -103,7 +103,7 @@
             val valid_NFTPoolSateBoxReplication: Boolean = {
 
                 val valid_Value: Boolean = {
-                    (nftPoolStateBoxIN.value == nftPoolStateBoxOUT)
+                    (nftPoolStateBoxIN.value == nftPoolStateBoxOUT) // must be 2 * MinERGForExistance in case of token retrieval instead of token burn for sale end tx
                 }
 
                 val valid_Contract: Boolean = {
