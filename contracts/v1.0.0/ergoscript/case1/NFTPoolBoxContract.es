@@ -13,12 +13,14 @@
     // Context Extension Variables: None
     // Outputs: NFTPoolStateBox, NFTPoolBoxes, BuyerPKBox, TxOperatorBox
 
-    // ===== Sale End Tx ===== //
-    // Description: The sale period has expired and all input tokens must be burned.
+    // ===== NFT Sale End Tx ===== //
+    // Description: The sale period has expired and all input tokens are either returned to the sale initiater or are burned.
     // DataInputs: None
     // Inputs: NFTPoolBoxes
     // Context Extension Variables: None
-    // Outputs: WithdrawBox, MinerBox
+    // Outputs: 
+        // With Token Burn: TxOperatorBox
+        // Without Token Burn: UserPKBox, TxOperatorBox
 
     // ===== Hard-Coded Constants ===== //
     val MintAddress: Coll[Byte] = _MintAddress
@@ -29,10 +31,11 @@
     val MinerFee: Long = MinERGForExistance
     val NFTPoolStateBoxContractHash: Coll[Byte] = blake2b256(_NFTPoolStateBoxContract)
     val IsTokenBurn: Boolean = _IsTokenBurn
+    val TxOperatorPK: Coll[Byte] = _TxOperatorPK
 
     // ===== Spending Path Check ===== //
     val isNFTSaleTx: Boolean = (INPUTS.size > 1)
-    val isNFTSaleEndTx: Boolean = (OUTPUTS.size == 2)
+    val isNFTSaleEndTx: Boolean = (OUTPUTS.size <= 3)
     
     if (isNFTSaleTx) {
 
@@ -189,9 +192,9 @@
         val nftPoolBoxesIN: Coll[Box] = INPUTS.slice(1, INPUTS.size)
 
         // ===== Outputs ===== //
-        val userPKBox: Box = OUTPUTS(0)
-        val txOperatorBox: Box = if (IsTokenBurn) OUTPUTS(0) else OUTPUTS(1)
-        val minerBox: Box = if (IsTokenBurn) OUTPUTS(1) else OUTPUTS(2)
+        val userPKBoxOUT: Box = OUTPUTS.slice(0, OUTPUTS.size-2)
+        val txOperatorBox: Box = OUTPUTS(OUTPUTS.size-2)
+        val minerBox: Box = OUTPUTS(OUTPUTS.size-1)
 
         // Check conditions for a valid sale end transaction, which occurs if not all NFTs in the pool have been sold after the sale period has expired.
         val valid_NFTSaleEndTx: Boolean = {
@@ -221,19 +224,19 @@
 
             }
 
-            val valid_UserPKBox: Boolean = {
+            val valid_UserPKBoxOUT: Boolean = {
             
                 if (!IsTokenBurn) {
                     
-                    val valid_Value: Boolean = (userPKBox.value == MinERGForExistance)
+                    val valid_Value: Boolean = (userPKBoxOUT.value == MinERGForExistance)
 
-                    val valid_PK: Boolean = (userPKBox.propositionBytes == MintAddress)
+                    val valid_PK: Boolean = (userPKBoxOUT.propositionBytes == MintAddress)
 
                     val valid_Tokens: Boolean = {
 
-                        val nftCollection: Coll[(Coll[Byte], Long)] = INPUTS.fold(Coll[(Coll[Byte[], Long])]() , { (acc: Coll[(Coll[Byte], Long)], nftPoolBox: Box) => acc ++ nftPoolBox.tokens.slice(1, nftPoolBoolBox.tokens.size) })
+                        val nftCollection: Coll[(Coll[Byte], Long)] = INPUTS.fold(Coll[(Coll[Byte[], Long])]() , { (acc: Coll[(Coll[Byte], Long)], nftPoolBoxIN: Box) => acc ++ nftPoolBoxIN.tokens.slice(1, nftPoolBoolBoxIN.tokens.size) })
 
-                        (userPKBox.tokens == nftCollection)
+                        (userPKBoxOUT.tokens == nftCollection)
 
                     }
                 
@@ -261,11 +264,13 @@
 
                 }
 
-                // All input tokens must be burned
+                val valid_PK: Boolean = (txOperatorBox.propositionBytes == TxOperatorPK)
+
                 val valid_Tokens: Boolean = {
                     
                     if (IsTokenBurn) {
 
+                         // All input tokens must be burned
                         (txOperatorBox.tokens == Coll[(Coll[Byte], Long)]())
                     
                     } else {
@@ -276,6 +281,7 @@
 
                 allOf(Coll(
                     valid_Value,
+                    valid_PK,
                     valid_Tokens
                 ))
 

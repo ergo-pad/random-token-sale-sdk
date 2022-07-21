@@ -26,7 +26,7 @@
     val NFTPoolNFT: Coll[Byte] = _NFTPoolNFT
     val WhitelistNFT: Option[Coll[Byte]] = _WhitelistNFT
     val BuyerPK: SigmaProp = _BuyerPK
-    val TxOperatorPK: SigmaProp = _TxOperatorPK
+    val TxOperatorPK: Coll[Byte] = _TxOperatorPK
     val NFTPrice: Long = _NFTPrice
     val MinERGForExistence: Long = 1000000L
     val TxOperatorFee: Long = _TxOperatorFee
@@ -39,7 +39,7 @@
 
     // ===== Spending Path Check ===== //
     val isNFTSaleTx: Boolean = (INPUTS.size > 1)
-    val isRefundTx: Boolean = (INPTUTS.size == 1)
+    val isRefundTx: Boolean = (INPUTS.size == 1)
 
     if (isNFTSaleTx) {
 
@@ -229,7 +229,7 @@
                 }
 
                 valid_PK: Boolean = {
-                    (txOperatorBoxOUT.propositionBytes == TxOperatorPK.propBytes)
+                    (txOperatorBoxOUT.propositionBytes == TxOperatorPK)
                 }
 
                 allOf(Coll(
@@ -316,7 +316,7 @@
                 }
 
                 valid_PK: Boolean = {
-                    (txOperatorBoxOUT.propositionBytes == TxOperatorPK.propBytes)
+                    (txOperatorBoxOUT.propositionBytes == TxOperatorPK)
                 }
 
                 allOf(Coll(
