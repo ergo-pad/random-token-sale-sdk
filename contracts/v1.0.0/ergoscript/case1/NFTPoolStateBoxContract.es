@@ -58,7 +58,7 @@
 
             // ===== Outputs ===== //
             val nftPoolStateBoxOUT: Box = OUTPUTS(0)
-            val buyerPKBoxes: Box = OUTPUTS(1, OUTPUTS.size-2)
+            val buyerPKBoxesOUT: Box = OUTPUTS(1, OUTPUTS.size-2)
             val txOperatorBox: Box = OUTPUTS(OUTPUTS.size-2)
             val minerBox: Box = OUTPUTS(OUTPUTS.size-1)
 
@@ -66,30 +66,41 @@
                 
                 val valid_NFTPoolSateBoxReplication: Boolean = {
 
+                    val valid_Box: Boolean = (SELF == nftPoolBoolBoxIN)
+
                     val valid_Value: Boolean = {
-                        (nftPoolStateBoxIN.value == nftPoolStateBoxOUT.value)
+                        (nftPoolStateBoxOUT.value == SELF.value)
                     }
 
                     val valid_Contract: Boolean = {
-                        (nftPoolStateBoxIN.value == nftPoolStateBoxOUT.value)
+                        (nftPoolStateBoxOUT.propositionBytes == SELF.propositionBytes)
                     }
 
                     val valid_Tokens: Boolean = {
                         
                         val valid_NFTPoolToken: Boolean = {
-                            (nftPoolStateBoxIN.tokens(0) == nftPoolStateBoxOUT.tokens(0))
+                            (nftPoolStateBoxOUT.tokens(0) == SELF.tokens(0))
                         }
 
                         val valid_WhitelistToken: Boolean = {
 
-                            val valid_WhitelistTokenID: Boolean = (nftPoolStateBoxIN.tokens(1)._1 == nftPoolStateBoxOUT.tokens(1)._1)
+                            val valid_WhitelistTokenID: Boolean = (nftPoolStateBoxOUT.tokens(1)._1 == SELF.tokens(1)._1)
                             
                             val valid_WhitelistTokenAmount: Boolean = {
 
                                 if (IsWhitelistAirdrop) {
-                                    (nftPoolStateBoxOUT.tokens(1)._2 = 1L)
+
+                                    (nftPoolStateBoxOUT.tokens(1)._2 == 1L)
+                                
                                 } else if (IsWhitelistDirectSale) {
-                                    (nftPoolStateBoxO)
+                                    
+                                    allOf(Coll(
+                                        (nftPoolStateBoxOUT.tokens(1)._2 >= 1),
+                                        (nftPoolStateBoxOUT.tokens(1)._2 == SELF.tokens(1)._2 - 1L)
+                                    ))
+                                
+                                } else {
+                                    true
                                 }
 
                             }
@@ -105,17 +116,37 @@
 
                     val valid_Registers: Boolean = {
 
+                        val valid_MintAddress: Boolean = (nftPoolStateBoxOUT.R4[Coll[Byte]].get == SELF.R4[Coll[Byte]].get)
+                        
+                        val valid_NFTRaritiesAndAmounts: Boolean = (nftPoolStateBoxOUT.R5[Coll[(Byte, Int)]].get == SELF.R5[Coll[(Byte, Int)]].get)
+                        
+                        val valid_TokenRarityPackSizes: Boolean = (nftPoolStateBoxOUT.R6[Coll[Byte]].get == SELF.R6[Coll[Byte]].get)
 
+                        val valid_TotalNFTAmount: Boolean = (nftPoolStateBoxOUT.R7[Long].get == SELF.R7[Long].get)
+                        
+                        val valid_RemainingNFTAmount: Boolean = (nftPoolStateBoxOUT.R8[Long].get == SELF.R8[Long].get)
+
+                        allOf(Coll(
+                            valid_MintAddress,
+                            valid_NFTRaritiesAndAmounts,
+                            valid_TokenRarityPackSizes,
+                            valid_TotalNFTAmount,
+                            valid_RemainingNFTAmount
+                        ))
 
                     }
 
+                    allOf(Coll(
+                        valid_Box,
+                        valid_Value,
+                        valid_Contract,
+                        valid_Tokens,
+                        valid_Registers
+                    ))
+
                 }
 
-                val valid_WhitelistTokenDistribution: Boolean = {
-
-
-
-                }
+                val valid_WhitelistTokenDistribution: Boolean = (buyerPKBoxesOUT.forall({ buyerPKBox: Box => buyerPKBox.tokens(0) == (SELF.tokens(1)._1, 1L) }))
 
                 allOf(Coll(
                     valid_NFTPoolSateBoxReplication,
@@ -132,11 +163,83 @@
 
     } else if (isNFTSaleTx) {
 
+        val valid_NFTSaleTx: Boolean = {
 
+            val valid_NFTPoolSateBoxReplication: Boolean = {
+
+                val valid_Box: Boolean = (SELF == nftPoolStateBoxIN)
+
+                val valid_Value: Boolean = {
+                    (nftPoolStateBoxOUT.value == SELF.value) // must be 2 * MinERGForExistance in case of token retrieval instead of token burn for sale end tx
+                }
+
+                val valid_Contract: Boolean = {
+                    allOf(Coll(
+                        (nftPoolStateBoxOUT.propositionBytes == SELF.propositionBytes)
+                    ))
+                }
+
+                val valid_Tokens: Boolean = {
+                    
+                    val valid_NFTPoolNFT: Boolean = (nftPoolStateBoxOUT.tokens(0) == SELF.tokens(0))
+
+                    val valid_WhitelistNFT: Boolean = {
+
+                        if (IsWhitelistNFT) { 
+                            (nftPoolStateBoxOUT.tokens(1) == SELF.tokens(1))
+                        } else true
+                    
+                    }
+
+                    allOf(Coll(
+                        valid_NFTPoolNFT,
+                        valid_WhitelistNFT
+                    ))
+
+                }
+
+                val valid_Registers: Boolean = {
+
+                    val valid_MintAddress: Boolean = (nftPoolSateBoxOUT.R4[Coll[Byte]].get == SELF.R4[Coll[Byte]].get)
+
+                    val valid_NFTRaritiesAndAmounts: Boolean = (nftPoolStateBoxOUT.R5[Coll[(Byte, Int)]].get == SELF.R5[Coll[(Byte, Int)]].get)
+
+                    val valid_TokenRarityPackSizes: Boolean = (nftPoolStateBoxOUT.R6[Coll[Byte]].get == SELF.R6[Coll[Byte]].get)
+                    
+                    val valid_TotalNFTAmount: Boolean = (nftPoolStateBoxOUT.R7[Long].get == SELF.R7[Long].get)
+
+                    val valid_RemainingNFTAmount: Boolean = {
+                        allOf(Coll(
+                            (remainingNFTAmount >= 0),
+                            (nftPoolStateBoxOUT.R8[Long].get == SELF.R8[Long].get - 1)
+                        ))
+                    }
+
+                }
+
+                allOf(Coll(
+                    valid_Box,
+                    valid_Value,
+                    valid_Contract,
+                    valid_Tokens,
+                    valid_Registers
+                ))
+
+            }
+
+        }
+
+        sigmaProp(valid_NFTSaleTx)
 
     } else if (isNFTSaleEndTx) {
 
+        val valid_NFTSaleEndTx: Boolean = {
 
+            
+
+        }
+
+        sigmaProp(valid_NFTSaleEndTx)
 
     } else {
         sigmaProp(false)
