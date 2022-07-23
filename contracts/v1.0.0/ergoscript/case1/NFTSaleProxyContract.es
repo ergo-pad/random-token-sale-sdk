@@ -79,6 +79,14 @@
         // Check conditions for a valid NFT sale
         val valid_NFTSaleTx: Boolean = {
 
+            val valid_TimeRemaining: Boolean = {
+
+                val currentBlockHeight: Int = CONTEXT.preHeader.height
+
+                (currentBlockHeight <= BlockHeightLimit)
+
+            }
+
             val valid_RNGOracleBox: Boolean = {
                 
                 val valid_Contract: Boolean = {
@@ -98,6 +106,56 @@
                     valid_RNGOracleNFT                                                        
                 ))
 
+            }
+
+            val valid_NFTPoolStateBoxIN: Boolean = {
+                allOf(Coll(
+                    (blake2b256(nftPoolStateBoxIN.propositionBytes) == NFTPoolStateBoxContractHash),
+                    (nftPoolStateBoxIN.tokens(0) == (NFTPoolNFT, 1L))
+                ))
+            }
+
+            val valid_NFTPoolBoxes: Boolean = {
+                
+                val valid_Inputs: Boolean = {
+                    
+                    nftPoolBoxesIN.forall({ nftPoolBoxIN: Box => 
+                    
+                        val valid_Contract: Boolean = (blake2b256(nftPoolBoxesIN.propositionBytes) == NFTPoolBoxContractHash)
+                    
+                        val valid_NFTPoolNFT: Boolean = (nftPoolBoxIN.tokens(0) == NFTPoolNFT)
+
+                        allOf(Coll(
+                            valid_Contract,
+                            valid_NFTPoolNFT
+                        ))
+                
+                    })
+                }
+
+                val valid_Outputs: Boolean = {
+
+                    nftPoolBoxesOUT.forall({ nftPoolBoxOUT: Box => 
+                    
+                        val valid_Contract: Boolean = (blake2b256(nftPoolBoxesOUT.propositionBytes) == NFTPoolBoxContractHash)
+                    
+                        val valid_NFTPoolNFT: Boolean = (nftPoolBoxIN.tokens(0) == NFTPoolNFT)
+
+                        allOf(Coll(
+                            valid_Contract,
+                            valid_NFTPoolNFT
+                        ))
+                    
+                    })
+
+                }
+
+                allOf(Coll(
+                    valid_Inputs,
+                    valid_Outputs
+                ))
+
+            
             }
 
             val valid_NFTSaleProxyBox: Boolean = {
@@ -183,23 +241,15 @@
 
             }
 
-            val valid_TimeRemaining: Boolean = {
-
-                val currentBlockHeight: Int = CONTEXT.preHeader.height
-
-                (currentBlockHeight <= BlockHeightLimit)
-
-            }
-
             allOf(Coll(
+                valid_TimeRemaining,
                 valid_RNGOracleBox,
-                valid_NFTPoolSateBoxReplication,
-                valid_NFTPoolBoxReplication,
+                valid_NFTPoolStateBox,
+                valid_NFTPoolBoxes,
                 valid_NFTSaleProxyBox,
                 valid_BuyerPKBox,
                 valid_TxOperatorBox, 
-                valid_MinerBox,
-                valid_TimeRemaining
+                valid_MinerBox
             ))
 
         }
