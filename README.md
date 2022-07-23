@@ -13,8 +13,8 @@ This repository can be installed as a python library and used within your own pr
 
 ### Contracts
   - The `latest` folder contains the version of the protocol contracts intended for in-production use.
-  - The `vX.Y.Z` folders contains the previous versions of the protocol contracts, either no longer in use or currently in development.
-  - Each version folder has a  `README.md` file and `docs` containing documentation about those respective versions of the protocol, along with the protocol specification.
+  - The `vX.Y.Z` folders contain the previous versions of the protocol contracts either no longer in use or currently in development.
+  - Each version folder has a  `README.md` file and a `docs` folder containing documentation about those respective versions of the protocol, along with the protocol specification.
 ### Design Document
   - The design document outlining all the different cases for the protocol can be found [here]()
 
