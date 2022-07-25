@@ -46,8 +46,8 @@
     val NFTPoolBoxContractHash: Coll[Byte] == blake2b256(_NFTPoolBoxContract)
 
     // ===== Spending Path Check ===== //
-    val isWhitelistDistributionTx: Boolean = (OUTPUTS.exists({ output: Box => output.propositionBytes == SELF.propositionBytes }))
-    val isNFTSaleTx: Boolean = (INPUTS.size >= 4 && OUTPUTS.exists({ output: Box => output.propositionBytes == SELF.propositionBytes }))
+    val isWhitelistDistributionTx: Boolean = (INPUTS.size == 2 && OUTPUTS(0).propositionBytes == SELF.propositionBytes)
+    val isNFTSaleTx: Boolean = (INPUTS.size >= 4 && OUTPUTS(0).propositionBytes == SELF.propositionBytes)
     val isNFTSaleEndTx: Boolean = (!OUTPUTS.exists({ output: Box => output.propositionBytes != SELF.propositionBytes }))
        
     if (isWhitelistDistributionTx) {
@@ -56,7 +56,7 @@
 
             // ===== Inputs ===== //
             val nftPoolStateBoxIN: Box = INPUTS(0)
-            val whitelistProxyBoxIN: Box = INPUTS(1)
+            val whitelistDistributionProxyBoxIN: Box = INPUTS(1)
 
             // ===== Outputs ===== //
             val nftPoolStateBoxOUT: Box = OUTPUTS(0)
@@ -64,31 +64,31 @@
             val txOperatorBox: Box = OUTPUTS(OUTPUTS.size-2)
             val minerBox: Box = OUTPUTS(OUTPUTS.size-1)
 
-            val valid_WhitelistDistributionTx: Boolean = {
+            val validWhitelistDistributionTx: Boolean = {
                 
-                val valid_NFTPoolSateBoxReplication: Boolean = {
+                val validNFTPoolSateBoxReplication: Boolean = {
 
-                    val valid_Box: Boolean = (SELF == nftPoolBoolBoxIN)
+                    val validBox: Boolean = (SELF == nftPoolBoolBoxIN)
 
-                    val valid_Value: Boolean = {
+                    val validValue: Boolean = {
                         (nftPoolStateBoxOUT.value == SELF.value)
                     }
 
-                    val valid_Contract: Boolean = {
+                    val validContract: Boolean = {
                         (nftPoolStateBoxOUT.propositionBytes == SELF.propositionBytes)
                     }
 
-                    val valid_Tokens: Boolean = {
+                    val validTokens: Boolean = {
                         
-                        val valid_NFTPoolToken: Boolean = {
+                        val validNFTPoolToken: Boolean = {
                             (nftPoolStateBoxOUT.tokens(0) == SELF.tokens(0))
                         }
 
-                        val valid_WhitelistToken: Boolean = {
+                        val validWhitelistToken: Boolean = {
 
-                            val valid_WhitelistTokenID: Boolean = (nftPoolStateBoxOUT.tokens(1)._1 == SELF.tokens(1)._1)
+                            val validWhitelistTokenID: Boolean = (nftPoolStateBoxOUT.tokens(1)._1 == SELF.tokens(1)._1)
                             
-                            val valid_WhitelistTokenAmount: Boolean = {
+                            val validWhitelistTokenAmount: Boolean = {
 
                                 if (IsWhitelistAirdrop) {
 
@@ -108,56 +108,51 @@
                             }
 
                             allOf(Coll(
-                                valid_WhitelistTokenID,
-                                valid_WhitelistTokenAmount
+                                validWhitelistTokenID,
+                                validWhitelistTokenAmount
                             ))
 
                         }
 
                     }
 
-                    val valid_Registers: Boolean = {
+                    val validRegisters: Boolean = {
 
-                        val valid_MintAddress: Boolean = (nftPoolStateBoxOUT.R4[Coll[Byte]].get == SELF.R4[Coll[Byte]].get)
+                        val validMintAddress: Boolean = (nftPoolStateBoxOUT.R4[Coll[Byte]].get == SELF.R4[Coll[Byte]].get)
                         
-                        val valid_NFTRaritiesAndAmounts: Boolean = (nftPoolStateBoxOUT.R5[Coll[(Byte, Int)]].get == SELF.R5[Coll[(Byte, Int)]].get)
+                        val validNFTRaritiesAndAmounts: Boolean = (nftPoolStateBoxOUT.R5[Coll[(Byte, Int)]].get == SELF.R5[Coll[(Byte, Int)]].get)
                         
-                        val valid_TokenRarityPackSizes: Boolean = (nftPoolStateBoxOUT.R6[Coll[Byte]].get == SELF.R6[Coll[Byte]].get)
+                        val validTokenRarityPackSizes: Boolean = (nftPoolStateBoxOUT.R6[Coll[Byte]].get == SELF.R6[Coll[Byte]].get)
 
-                        val valid_TotalNFTAmount: Boolean = (nftPoolStateBoxOUT.R7[Long].get == SELF.R7[Long].get)
+                        val validTotalNFTAmount: Boolean = (nftPoolStateBoxOUT.R7[Long].get == SELF.R7[Long].get)
                         
-                        val valid_RemainingNFTAmount: Boolean = (nftPoolStateBoxOUT.R8[Long].get == SELF.R8[Long].get)
+                        val validRemainingNFTAmount: Boolean = (nftPoolStateBoxOUT.R8[Long].get == SELF.R8[Long].get)
 
                         allOf(Coll(
-                            valid_MintAddress,
-                            valid_NFTRaritiesAndAmounts,
-                            valid_TokenRarityPackSizes,
-                            valid_TotalNFTAmount,
-                            valid_RemainingNFTAmount
+                            validMintAddress,
+                            validNFTRaritiesAndAmounts,
+                            validTokenRarityPackSizes,
+                            validTotalNFTAmount,
+                            validRemainingNFTAmount
                         ))
 
                     }
 
                     allOf(Coll(
-                        valid_Box,
-                        valid_Value,
-                        valid_Contract,
-                        valid_Tokens,
-                        valid_Registers
+                        validBox,
+                        validValue,
+                        validContract,
+                        validTokens,
+                        validRegisters
                     ))
 
                 }
 
-                val valid_WhitelistTokenDistribution: Boolean = (buyerPKBoxesOUT.forall({ buyerPKBox: Box => buyerPKBox.tokens(0) == (SELF.tokens(1)._1, 1L) }))
-
-                allOf(Coll(
-                    valid_NFTPoolSateBoxReplication,
-                    valid_WhitelistTokenDistribution
-                ))
+                validNFTPoolSateBoxReplication
                 
             }
 
-            sigmaProp(valid_WhitelistDistributionTx)
+            sigmaProp(validWhitelistDistributionTx)
 
         } else {
             false
@@ -177,28 +172,28 @@
         val nftPoolStateBoxOUT: Box = OUTPUTS(0)
         val nftPoolBoxesOUT: Coll[Box] = OUTPUTS.slice(1, OUTPUTS,size-3)  
         val buyerPKBoxOUT: Box = OUTPUTS(OUTPUTS.size-3)
-        val txOperatorBoxOUT: Box = OUTPUTS(OUTPUTS.size-2)                
+        val txOperatorBox: Box = OUTPUTS(OUTPUTS.size-2)                
         val minerBox: Box = OUTPUTS(OUTPUTS.size-1)
 
-        val valid_NFTSaleTx: Boolean = {
+        val validNFTSaleTx: Boolean = {
 
-            val valid_NFTPoolStateBoxReplication: Boolean = {
+            val validNFTPoolStateBoxReplication: Boolean = {
 
-                val valid_Value: Boolean = {
+                val validValue: Boolean = {
                     (nftPoolStateBoxOUT.value == SELF.value) // must be 2 * MinERGForExistance in case of token retrieval instead of token burn for sale end tx
                 }
 
-                val valid_Contract: Boolean = {
+                val validContract: Boolean = {
                     allOf(Coll(
                         (nftPoolStateBoxOUT.propositionBytes == SELF.propositionBytes)
                     ))
                 }
 
-                val valid_Tokens: Boolean = {
+                val validTokens: Boolean = {
                     
-                    val valid_NFTPoolNFT: Boolean = (nftPoolStateBoxOUT.tokens(0) == SELF.tokens(0))
+                    val validNFTPoolToken: Boolean = (nftPoolStateBoxOUT.tokens(0) == SELF.tokens(0))
 
-                    val valid_WhitelistNFT: Boolean = {
+                    val validWhitelistToken: Boolean = {
 
                         if (IsWhitelist) { 
                             (nftPoolStateBoxOUT.tokens(1) == SELF.tokens(1))
@@ -207,23 +202,23 @@
                     }
 
                     allOf(Coll(
-                        valid_NFTPoolNFT,
-                        valid_WhitelistNFT
+                        validNFTPoolToken,
+                        validWhitelistToken
                     ))
 
                 }
 
-                val valid_Registers: Boolean = {
+                val validRegisters: Boolean = {
 
-                    val valid_MintAddress: Boolean = (nftPoolSateBoxOUT.R4[Coll[Byte]].get == SELF.R4[Coll[Byte]].get)
+                    val validMintAddress: Boolean = (nftPoolSateBoxOUT.R4[Coll[Byte]].get == SELF.R4[Coll[Byte]].get)
 
-                    val valid_NFTRaritiesAndAmounts: Boolean = (nftPoolStateBoxOUT.R5[Coll[(Byte, Int)]].get == SELF.R5[Coll[(Byte, Int)]].get)
+                    val validNFTRaritiesAndAmounts: Boolean = (nftPoolStateBoxOUT.R5[Coll[(Byte, Int)]].get == SELF.R5[Coll[(Byte, Int)]].get)
 
-                    val valid_TokenRarityPackSizes: Boolean = (nftPoolStateBoxOUT.R6[Coll[Byte]].get == SELF.R6[Coll[Byte]].get)
+                    val validTokenRarityPackSizes: Boolean = (nftPoolStateBoxOUT.R6[Coll[Byte]].get == SELF.R6[Coll[Byte]].get)
                     
-                    val valid_TotalNFTAmount: Boolean = (nftPoolStateBoxOUT.R7[Long].get == SELF.R7[Long].get)
+                    val validTotalNFTAmount: Boolean = (nftPoolStateBoxOUT.R7[Long].get == SELF.R7[Long].get)
 
-                    val valid_RemainingNFTAmount: Boolean = {
+                    val validRemainingNFTAmount: Boolean = {
                         allOf(Coll(
                             (remainingNFTAmount >= 0),
                             (nftPoolStateBoxOUT.R8[Long].get == SELF.R8[Long].get - 1)
@@ -233,21 +228,21 @@
                 }
 
                 allOf(Coll(
-                    valid_Box,
-                    valid_Value,
-                    valid_Contract,
-                    valid_Tokens,
-                    valid_Registers
+                    validBox,
+                    validValue,
+                    validContract,
+                    validTokens,
+                    validRegisters
                 ))
 
             }
 
-            val valid_NFTPoolBoxReplication: Boolean = {
+            val validNFTPoolBoxReplication: Boolean = {
 
                 val boxIndices: Coll[Int] = if (nftPoolBoxesIN.size == nftPoolBoxesOUT.size) nftPoolBoxesIN.indices else nftPoolBoxesIN.indices.slice(0, nftPoolBoxesIN.indices.size-1)
                 val prefix: Coll[Byte] = Coll(0.toByte, 0.toByte, 0.toByte, 0.toByte)
 
-                val valid_Inputs: Boolean = {
+                val validInputs: Boolean = {
 
                     val nftPoolBoxesINANDInputIndices: Coll[(Box, Int)] = nftPoolBoxesIN.zip(boxIndices)
                     
@@ -256,14 +251,14 @@
                         val nftPoolBoxIN: Box = nftPoolBoxINANDBoxIndex._1
                         val boxIndex: Int = nftPoolBoxINANDBoxIndex._2
                 
-                        val valid_Value: Boolean = (nftPoolBoxIN.value == MinERGForExistance)
+                        val validValue: Boolean = (nftPoolBoxIN.value == MinERGForExistance)
                         
-                        val valid_Contract: Boolean = (blake2b256(nftPoolBoxIN.propositionBytes) == NFTPoolBoxContractHash)
+                        val validContract: Boolean = (blake2b256(nftPoolBoxIN.propositionBytes) == NFTPoolBoxContractHash)
 
-                        val valid_NFTPoolToken: Boolean = (nftPoolBoxIN.tokens(0) == (NFTPoolNFT, 1L))
+                        val validNFTPoolToken: Boolean = (nftPoolBoxIN.tokens(0) == (NFTPoolToken, 1L))
 
                         // Check that the input indices of the pool boxes remain constant from each NFT sale tx to the next
-                        val valid_InputIndex: Boolean = {
+                        val validInputIndex: Boolean = {
 
                             val nftPoolBoxINIndexBytes: Coll[Byte] = nftPoolBoxIN.creationInfo._2.slice(32, 36)  // Only the last 8 bytes are needed.
                             val nftPoolBoxINIndex: Int = byteArrayToLong(prefix.append(nftPoolBoxINIndexBytes)).toInt
@@ -272,14 +267,14 @@
 
                         }
 
-                        val valid_MintAddress: Boolean = (nftPoolBoxIN.R4[Coll[Byte]].get == MintAddress)
+                        val validMintAddress: Boolean = (nftPoolBoxIN.R4[Coll[Byte]].get == MintAddress)
 
                         allOf(Coll(
-                            valid_Value,
-                            valid_Contract,
-                            valid_NFTPoolToken,
-                            valid_InputIndex,
-                            valid_MintAddress
+                            validValue,
+                            validContract,
+                            validNFTPoolToken,
+                            validInputIndex,
+                            validMintAddress
                         ))
 
                     
@@ -287,7 +282,7 @@
 
                 }
 
-                val valid_Outputs: Boolean = {
+                val validOutputs: Boolean = {
 
                     val nftPoolBoxesOUTANDBoxIndices: Coll[(Box, Int)] = nftPoolBoxesOUT.zip(boxIndices)
 
@@ -296,14 +291,14 @@
                         val nftPoolBoxesOUT: Box = nftPoolBoxOUTANDBoxIndex._1
                         val boxIndex: Int = nftPoolBoxOUTANDBoxIndex._2
 
-                        val valid_Value: Boolean = (nftPoolBoxOUT.value == MinERGForExistance)
+                        val validValue: Boolean = (nftPoolBoxOUT.value == MinERGForExistance)
 
-                        val valid_Contract: Boolean = (blake2b256(nftPoolBoxOUT.propositionBytes) == NFTPoolBoxContractHash)
+                        val validContract: Boolean = (blake2b256(nftPoolBoxOUT.propositionBytes) == NFTPoolBoxContractHash)
 
-                        val valid_NFTPoolToken: Boolean = (nftPoolBoxOUT.tokens(0) == (NFTPoolNFT, 1L))
+                        val validNFTPoolToken: Boolean = (nftPoolBoxOUT.tokens(0) == (NFTPoolToken, 1L))
 
                         // Check that the output indices of the pool boxes remain constant from each NFT sale tx to the next
-                        val valid_OutputIndex: Boolean = {
+                        val validOutputIndex: Boolean = {
                             
                             val nftPoolBoxOUTIndexBytes: Coll[Byte] = nftPoolBoxOUT.creationInfo._2.slice(32, 36)  // Only the last 8 bytes are needed.
                             val nftPoolBoxOUTIndex: Int = byteArrayToLong(prefix.append(nftPoolBoxOUTIndexBytes)).toInt
@@ -312,14 +307,14 @@
 
                         }
 
-                        val valid_MintAddress: Boolean = (nftPoolBoxIN.R4[Coll[Byte]].get == MintAddress)
+                        val validMintAddress: Boolean = (nftPoolBoxIN.R4[Coll[Byte]].get == MintAddress)
 
                         allOf(Coll(
-                            valid_Value,
-                            valid_Contract,
-                            valid_NFTPoolToken,
-                            valid_OutputIndex,
-                            valid_MintAddress
+                            validValue,
+                            validContract,
+                            validNFTPoolToken,
+                            validOutputIndex,
+                            validMintAddress
                         ))
 
                     })
@@ -328,14 +323,14 @@
             }
 
             allOf(Coll(
-                valid_NFTPoolStateBoxReplication
-                valid_NFTPoolBoxReplication,
-                valid_MintAddress
+                validNFTPoolStateBoxReplication
+                validNFTPoolBoxReplication,
+                validMintAddress
             ))
 
         }
 
-        sigmaProp(valid_NFTSaleTx)
+        sigmaProp(validNFTSaleTx)
 
     } else if (isNFTSaleEndTx) {
 
@@ -348,38 +343,38 @@
         val txOperatorBox: Box = OUTPUTS(OUTPUTS.size-2)
         val minerBox: Box = OUTPUTS(OUTPUTS.size-1)
 
-        val valid_NFTSaleEndTx: Boolean = {
+        val validNFTSaleEndTx: Boolean = {
 
-            val valid_NFTPoolStateBoxIN: Boolean = (nftPoolStateBoxIN == SELF)
+            val validNFTPoolStateBoxIN: Boolean = (nftPoolStateBoxIN == SELF)
 
-            val valid_NFTPoolBoxesIN: Boolean = {
+            val validNFTPoolBoxesIN: Boolean = {
                 
                 nftPoolBoxesIN.forall({ nftPoolBoxIN: Box => 
                     
-                    val valid_Contract: Boolean = (blake2b256(nftPoolBoxesIN.propositionBytes) == NFTPoolBoxContractHash)
+                    val validContract: Boolean = (blake2b256(nftPoolBoxesIN.propositionBytes) == NFTPoolBoxContractHash)
                     
-                    val valid_NFTPoolNFT: Boolean = (nftPoolBoxIN.tokens(0) == SELF.tokens(0))
+                    val validNFTPoolToken: Boolean = (nftPoolBoxIN.tokens(0) == SELF.tokens(0))
 
                     allOf(Coll(
-                        valid_Contract,
-                        valid_NFTPoolNFT
+                        validContract,
+                        validNFTPoolToken
                     ))
                 
                 })
             
             }
 
-            val valid_UserPKBoxesOUT: Boolean = {
+            val validUserPKBoxesOUT: Boolean = {
             
                 if (!IsTokenBurn) {
 
                     userPKBoxesOUT.forall({ userPKBoxOUT: Box =>
                     
-                        val valid_Value: Boolean = (userPKBoxOUT.value == MinERGForExistance)
+                        val validValue: Boolean = (userPKBoxOUT.value == MinERGForExistance)
                         
-                        val valid_PK: Boolean = (userPKBoxOUT.propositionBytes == MintAddres)
+                        val validPK: Boolean = (userPKBoxOUT.propositionBytes == MintAddres)
 
-                        val valid_Tokens: Boolean = {
+                        val validTokens: Boolean = {
 
                             val nftCollection: Coll[(Coll[Byte], Long)] = INPUTS.fold(Coll[(Coll[Byte], Long)](), { (acc: Coll[(Coll[Byte], Long)], nftPoolBoxIN: Box) => acc ++ nftPoolBoxIN.tokens.slice(1, nftPoolBoxIN.tokens.size) })
 
@@ -388,9 +383,9 @@
                         }
 
                         allOf(Coll(
-                            valid_Value,
-                            valid_PK,
-                            valid_Tokens
+                            validValue,
+                            validPK,
+                            validTokens
                         ))
                     
                     })
@@ -401,9 +396,9 @@
                 
             }
 
-            val valid_TxOperatorBox: Boolean = {
+            val validTxOperatorBox: Boolean = {
 
-                val valid_Value: Boolean = {
+                val validValue: Boolean = {
 
                     val inputValue: Long = INPUTS.fold(0L, { (acc: Long, input: Box) => input.value + acc })
 
@@ -419,9 +414,9 @@
 
                 }
 
-                val valid_PK: Boolean = (txOperatorBox.propositionBytes == TxOperatorPK)
+                val validPK: Boolean = (txOperatorBox.propositionBytes == TxOperatorPK)
 
-                val valid_Tokens: Boolean = {
+                val validTokens: Boolean = {
                     
                     if (IsTokenBurn) {
 
@@ -435,43 +430,43 @@
                 }
 
                 allOf(Coll(
-                    valid_Value,
-                    valid_PK,
-                    valid_Tokens
+                    validValue,
+                    validPK,
+                    validTokens
                 ))
 
             }
 
-            val valid_MinerBox: Boolean = {
+            val validMinerBox: Boolean = {
                 
-                val valid_Value: Boolean = {
+                val validValue: Boolean = {
                     (minerBox.value == MinerFee)
                 }
 
                 // All input tokens must be burned
-                val valid_Tokens: Boolean = {
+                val validTokens: Boolean = {
                     (minerBox.tokens == Coll[(Coll[Byte], Long)]())
                 }
 
                 allOf(Coll(
-                    valid_Value,
-                    valid_Tokens
+                    validValue,
+                    validTokens
                 ))
 
             }
 
             allOf(Coll(
-                valid_TimeExpired,
-                valid_NFTPoolSateBoxIN,
-                valid_NFTPoolBoxesIN,
-                valid_UserPKBoxesOUT,
-                valid_TxOperatorBox,
-                valid_MinerBox
+                validTimeExpired,
+                validNFTPoolSateBoxIN,
+                validNFTPoolBoxesIN,
+                validUserPKBoxesOUT,
+                validTxOperatorBox,
+                validMinerBox
             ))
 
         }
 
-        sigmaProp(valid_NFTSaleEndTx)
+        sigmaProp(validNFTSaleEndTx)
 
     } else {
         sigmaProp(false)

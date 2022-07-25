@@ -23,8 +23,8 @@
     // ===== Hard-Coded Constants ===== //
     val MintAddress: Coll[Byte] = _MintAddress
     val ErgoPadRNGOracleNFT: Coll[Byte] = _ErgoPadRNGOracleNFT
-    val NFTPoolNFT: Coll[Byte] = _NFTPoolNFT
-    val WhitelistNFT: Option[Coll[Byte]] = _WhitelistNFT
+    val NFTPoolToken: Coll[Byte] = _NFTPoolToken
+    val WhitelistToken: Option[Coll[Byte]] = _WhitelistToken
     val BuyerPK: SigmaProp = _BuyerPK
     val TxOperatorPK: Coll[Byte] = _TxOperatorPK
     val NFTPrice: Long = _NFTPrice
@@ -38,7 +38,7 @@
     val BlockHeightLimit: Int = _BlockHeightLimit
 
     // ===== Spending Path Check ===== //
-    val isNFTSaleTx: Boolean = (INPUTS.size > 1)
+    val isNFTSaleTx: Boolean = (INPUTS.size >= 4)
     val isRefundTx: Boolean = (INPUTS.size == 1)
 
     if (isNFTSaleTx) {
@@ -55,7 +55,7 @@
         val nftPoolStateBoxOUT: Box = OUTPUTS(0)
         val nftPoolBoxesOUT: Coll[Box] = OUTPUTS.slice(1, OUTPUTS,size-3)  
         val buyerPKBoxOUT: Box = OUTPUTS(OUTPUTS.size-3)
-        val txOperatorBoxOUT: Box = OUTPUTS(OUTPUTS.size-2)                
+        val txOperatorBox: Box = OUTPUTS(OUTPUTS.size-2)                
         val minerBox: Box = OUTPUTS(OUTPUTS.size-1)
 
         // ===== Relevant Variables ===== //
@@ -77,9 +77,9 @@
         val nft: (Coll[Byte], Long) = nftCollection(randomIndexForTokenPoolSelection.toInt)
 
         // Check conditions for a valid NFT sale
-        val valid_NFTSaleTx: Boolean = {
+        val validNFTSaleTx: Boolean = {
 
-            val valid_TimeRemaining: Boolean = {
+            val validTimeRemaining: Boolean = {
 
                 val currentBlockHeight: Int = CONTEXT.preHeader.height
 
@@ -87,13 +87,13 @@
 
             }
 
-            val valid_RNGOracleBox: Boolean = {
+            val validRNGOracleBox: Boolean = {
                 
-                val valid_Contract: Boolean = {
+                val validContract: Boolean = {
                     (blake2b256(ergopadRNGOracleBox.propositionBytes) == ErgoPadRNGOracleBoxContractHash)
                 }
 
-                val valid_RNGOracleNFT: Boolean = {
+                val validRNGOracleNFT: Boolean = {
 
                     val rngOracleNFT: Coll[Byte] = ergopadRNGOracleBox.tokens(0).get._1
                     
@@ -102,48 +102,48 @@
                 }
 
                 allOf(Coll(
-                    valid_Contract,
-                    valid_RNGOracleNFT                                                        
+                    validContract,
+                    validRNGOracleNFT                                                        
                 ))
 
             }
 
-            val valid_NFTPoolStateBoxIN: Boolean = {
+            val validNFTPoolStateBoxIN: Boolean = {
                 allOf(Coll(
                     (blake2b256(nftPoolStateBoxIN.propositionBytes) == NFTPoolStateBoxContractHash),
-                    (nftPoolStateBoxIN.tokens(0) == (NFTPoolNFT, 1L))
+                    (nftPoolStateBoxIN.tokens(0) == (NFTPoolToken, 1L))
                 ))
             }
 
-            val valid_NFTPoolBoxes: Boolean = {
+            val validNFTPoolBoxes: Boolean = {
                 
-                val valid_Inputs: Boolean = {
+                val validInputs: Boolean = {
                     
                     nftPoolBoxesIN.forall({ nftPoolBoxIN: Box => 
                     
-                        val valid_Contract: Boolean = (blake2b256(nftPoolBoxesIN.propositionBytes) == NFTPoolBoxContractHash)
+                        val validContract: Boolean = (blake2b256(nftPoolBoxesIN.propositionBytes) == NFTPoolBoxContractHash)
                     
-                        val valid_NFTPoolNFT: Boolean = (nftPoolBoxIN.tokens(0) == NFTPoolNFT)
+                        val validNFTPoolToken: Boolean = (nftPoolBoxIN.tokens(0) == NFTPoolToken)
 
                         allOf(Coll(
-                            valid_Contract,
-                            valid_NFTPoolNFT
+                            validContract,
+                            validNFTPoolToken
                         ))
                 
                     })
                 }
 
-                val valid_Outputs: Boolean = {
+                val validOutputs: Boolean = {
 
                     nftPoolBoxesOUT.forall({ nftPoolBoxOUT: Box => 
                     
-                        val valid_Contract: Boolean = (blake2b256(nftPoolBoxesOUT.propositionBytes) == NFTPoolBoxContractHash)
+                        val validContract: Boolean = (blake2b256(nftPoolBoxesOUT.propositionBytes) == NFTPoolBoxContractHash)
                     
-                        val valid_NFTPoolNFT: Boolean = (nftPoolBoxIN.tokens(0) == NFTPoolNFT)
+                        val validNFTPoolToken: Boolean = (nftPoolBoxIN.tokens(0) == NFTPoolToken)
 
                         allOf(Coll(
-                            valid_Contract,
-                            valid_NFTPoolNFT
+                            validContract,
+                            validNFTPoolToken
                         ))
                     
                     })
@@ -151,23 +151,23 @@
                 }
 
                 allOf(Coll(
-                    valid_Inputs,
-                    valid_Outputs
+                    validInputs,
+                    validOutputs
                 ))
 
             
             }
 
-            val valid_NFTSaleProxyBox: Boolean = {
+            val validNFTSaleProxyBox: Boolean = {
                 
-                val valid_NFTSaleCost: Boolean = {
+                val validNFTSaleCost: Boolean = {
                     (SELF.value == NFTSaleCost)
                 }
 
-                val valid_WhitelistNFT: Boolean = {
+                val validWhitelistToken: Boolean = {
 
-                    if (WhitelistNFT.isDefined) {
-                        (SELF.tokens(0) == (WhitelistNFT, 1L))
+                    if (WhitelistToken.isDefined) {
+                        (SELF.tokens(0) == (WhitelistToken, 1L))
                     } else {
                         true
                     }
@@ -175,7 +175,7 @@
                 }
 
                 // Check that the randomness used is generated after the user has submitted their funds to the proxy so they cannot determine a priori what NFT they will obtain
-                val valid_Randomness: Boolean = {
+                val validRandomness: Boolean = {
 
                     val ergopadRNGOracleBoxHeight: Int = ergopadRNGOracleBox.creationInfo._1
                     val nftSaleProxyBoxInHeight: Int = SELF.creationInfo._1
@@ -185,76 +185,76 @@
                 }
 
                 allOf(Coll(
-                    valid_NFTSaleCost,
-                    valid_WhitelistNFT,
-                    valid_Randomness
+                    validNFTSaleCost,
+                    validWhitelistToken,
+                    validRandomness
                 ))
 
             }
 
-            val valid_BuyerPKBox: Boolean = {
+            val validBuyerPKBox: Boolean = {
 
-                valid_Value: Boolean = {
+                validValue: Boolean = {
                     (buyerPKBoxOUT.value == MinERGForExistance)
                 }
 
-                valid_PK: Boolean = {
+                validPK: Boolean = {
                     (buyerPKBoxOUT.propositionBytes == BuyerPK.propBytes)
                 }
 
                 // Check that the user receives their NFT, their previous whitelist token, if required for the sale, is burned.
-                valid_Tokens: Boolean = {
+                validTokens: Boolean = {
                     (buyerPKBoxOUT.tokens == Coll(nft))
                 }
 
                 allOf(Coll(
-                    valid_Value,
-                    valid_PK,
-                    valid_Tokens
+                    validValue,
+                    validPK,
+                    validTokens
                 ))
 
             }
 
-            val valid_TxOperatorBox: Boolean = {
+            val validTxOperatorBox: Boolean = {
 
                 // NOTE: When the amount of output NFT pool boxes is less than the amount of input NFT pool boxes, the ERG change will go to the tx operator PK.
-                valid_Value: Boolean = {
-                    (txOperatorBoxOUT.value == TxOperatorFee)
+                validValue: Boolean = {
+                    (txOperatorBox.value == TxOperatorFee)
                 }
 
-                valid_PK: Boolean = {
-                    (txOperatorBoxOUT.propositionBytes == TxOperatorPK)
+                validPK: Boolean = {
+                    (txOperatorBox.propositionBytes == TxOperatorPK)
                 }
 
                 allOf(Coll(
-                    valid_Value,
-                    valid_PK
+                    validValue,
+                    validPK
                 ))
 
             }
 
-            val valid_MinerBox: Boolean = {
+            val validMinerBox: Boolean = {
 
-                valid_Value: Boolean = {
+                validValue: Boolean = {
                     (minerBox.value == MinerFee)
                 }
 
             }
 
             allOf(Coll(
-                valid_TimeRemaining,
-                valid_RNGOracleBox,
-                valid_NFTPoolStateBox,
-                valid_NFTPoolBoxes,
-                valid_NFTSaleProxyBox,
-                valid_BuyerPKBox,
-                valid_TxOperatorBox, 
-                valid_MinerBox
+                validTimeRemaining,
+                validRNGOracleBox,
+                validNFTPoolStateBox,
+                validNFTPoolBoxes,
+                validNFTSaleProxyBox,
+                validBuyerPKBox,
+                validTxOperatorBox, 
+                validMinerBox
             ))
 
         }
 
-        sigmaProp(valid_NFTSaleTx)
+        sigmaProp(validNFTSaleTx)
 
 
     } else if (isRefundTx) {
@@ -264,72 +264,72 @@
 
         // ===== Outputs ===== //
         val buyerPKBoxOUT: Box = OUTPUTS(0)
-        val txOperatorBoxOUT: Box = OUTPUTS(1)
+        val txOperatorBox: Box = OUTPUTS(1)
         val minerBox: Box = OUTPUTS(2)
 
-        val valid_RefundTx: Boolean = {
+        val validRefundTx: Boolean = {
 
-            val valid_NFTSaleProxyBox: Boolean = {
+            val validNFTSaleProxyBox: Boolean = {
                 (SELF.value >= MinERGForExistance + TxOperatorFee + MinerFee)
             }
 
-            val valid_BuyerPKBox: Boolean = {
+            val validBuyerPKBox: Boolean = {
                 
-                valid_Value: Boolean = {
+                validValue: Boolean = {
                     (buyerPKBoxOUT.value == SELF.value - TxOperatorFee - MinerFee) 
                 }
 
-                valid_PK: Boolean = {
+                validPK: Boolean = {
                     (buyerPKBoxOUT.propositionBytes == BuyerPK.propBytes)
                 }
 
-                valid_Tokens: Boolean = {
+                validTokens: Boolean = {
                     (buyerPKBoxOUT.tokens == SELF.tokens)
                 }
 
                 allOf(Coll(
-                    valid_Value,
-                    valid_PK,
-                    valid_Tokens
+                    validValue,
+                    validPK,
+                    validTokens
                 ))
 
             }
 
-            val valid_TxOperatorBox: Boolean = {
+            val validTxOperatorBox: Boolean = {
                 
-                valid_Value: Boolean = {
-                    (txOperatorBoxOUT.value == TxOperatorFee)
+                validValue: Boolean = {
+                    (txOperatorBox.value == TxOperatorFee)
                 }
 
-                valid_PK: Boolean = {
-                    (txOperatorBoxOUT.propositionBytes == TxOperatorPK)
+                validPK: Boolean = {
+                    (txOperatorBox.propositionBytes == TxOperatorPK)
                 }
 
                 allOf(Coll(
-                    valid_Value,
-                    valid_PK
+                    validValue,
+                    validPK
                 ))
 
             }
 
-            val valid_MinerBox: Boolean = {
+            val validMinerBox: Boolean = {
 
-                valid_Value: Boolean = {
+                validValue: Boolean = {
                     (minerBox.value == MinerFee)
                 }
 
             }
 
             allOf(Coll(
-                valid_NFTSaleProxyBox,
-                valid_BuyerPKBox
-                valid_TxOperatorBox,
-                valid_MinerBox
+                validNFTSaleProxyBox,
+                validBuyerPKBox
+                validTxOperatorBox,
+                validMinerBox
             ))
 
         }
 
-        sigmaProp(valid_RefundTx)
+        sigmaProp(validRefundTx)
 
     } else {
         sigmaProp(false)
