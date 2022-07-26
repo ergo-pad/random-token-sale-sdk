@@ -21,17 +21,65 @@
     // Outputs: UserPKBox, TxOperatorBox
 
     // ===== Hard-Coded Constants ===== //
-    val MintAddress: SigmaProp = _MintAddress
+    val MintAddress: Coll[Byte] = _MintAddress
+    val IsWhitelist: Boolean = _IsWhitelist
+    val MinERGForExistance: Long = 1000000
+    val MintingFee: Long = _MintingFee
+    val TxOperatorFee: Long = _TxOperatorFee
+    val MinerFee: Long = MinERGForExistance
+    val TxOperatorPK: Coll[Byte] = _TxOperatorPK
+    val NFTIssuerProxyContractHash: Coll[Byte] = blake2b256(_NFTIssuerProxyContract)
+    val NFTPoolIssuerProxyContractHash: Coll[Byte] = blake2b256(_NFTPoolIssuerContract)
+    val WhitelistIssuerProxyContractHash: Coll[Byte] = blake2b256(_WhitelistIssuerProxyContract)
 
     // ===== Spending Path Check ===== //
-    val isPreMintTx: Boolean = !(OUTPUTS(0).propositionBytes == MintAddress.propBytes)
-    val isRefundTx: Boolean = (OUTPUTS.size == 2)
+    val isPreMintTx: Boolean = (OUTPUTS(0).propositionBytes != MintAddress)
+    val isRefundTx: Boolean = (OUTPUTS(0).propositionBytes == MintAddress)
 
     if (isPreMintTx) {
 
+        // ===== Inputs ===== //
+        val preMintProxyBoxIN: Box = INPUTS(0)
+
+        // ===== Outputs ===== //
+        val nftIssuerProxyBoxesOUT: Coll[Box] = if (IsWhitelist) OUTPUTS.slice(0, OUTPUTS.size-4) else OUTPUTS.slice(0, OUTPUTS.size-3)
+        val nftPoolIssuerProxyBoxOUT: Box = if (IsWhitelist) OUTPUTS(OUTPUTS.size-4) else OUTPUTS(OUTPUTS.size-3)
+        val whitelistIssuerProxyBoxOUT: Box = if (IsWhitelist) OUTPUTS(OUTPUTS.size-3) else OUTPUTS(0)
+        val txOperatorBox: Box = OUTPUTS(OUTPUTS.size-2)
+        val minerBox: Box = OUTPUTS(OUTPUTS.size-1)
+
         val valid_PreMintTx: Boolean = {
 
+            val validMintingCost: Boolean = {
 
+                if (IsWhitelist) {
+                    (SELF.value >= MintingFee + ( (MinERGForExistance * 2) * (nftIssuerProxyBoxesOUT.size + 2) ) + TxOperatorFee + MinerFee)
+                } else {
+                    (SELF.value >= MintingFee + ( (MinERGForExistance * 2) * (nftIssuerProxyBoxesOUT.size + 1) ) + TxOperatorFee + MinerFee)
+                }
+
+            }
+
+            val validWhitelistIssuerProxyBox: Boolean = {
+
+                nftIssuerProxyBoxesOUT.forall({ nft })
+
+            }
+
+            val validTxOperatorBox: Boolean = {
+
+                val validValue: Boolean = (txOperatorBox.value == TxOperatorFee)
+
+                val validPK: Boolean = (txOperatorBox.propositionBytes == TxOperatorPK)
+
+                allOf(Coll(
+                    validValue,
+                    validPK
+                ))
+
+            }
+
+            val validMinerFee: Boolean = (minerBox.value == MinerFee)
 
         }
 
