@@ -31,6 +31,7 @@
     val NFTIssuerProxyContractHash: Coll[Byte] = blake2b256(_NFTIssuerProxyContract)
     val NFTPoolIssuerProxyContractHash: Coll[Byte] = blake2b256(_NFTPoolIssuerContract)
     val WhitelistIssuerProxyContractHash: Coll[Byte] = blake2b256(_WhitelistIssuerProxyContract)
+    val NFTRoyaltyPercentages: Coll[Int] = _NFTRoyaltyPercentages
 
     // ===== Spending Path Check ===== //
     val isPreMintTx: Boolean = (OUTPUTS(0).propositionBytes != MintAddress)
@@ -60,9 +61,41 @@
 
             }
 
+            val validNFTIssuerProxyBoxes: Boolean = {
+
+                nftIssuerProxyBoxesOUT.forall({ nftIssuerProxyBox: Box => 
+                
+                    val validValue: Boolean = (nftIssuerProxyBox.value == 2 * MinERGForExistance)
+
+                    val validContract: Boolean = (blake2b256(nftIssuerProxyBox.propositionBytes) == NFTIssuerProxyContractHash)
+                
+                    val validRoyaltyPercentage: Boolean = ()
+
+                    allOf(Coll(
+                        validValue,
+                        validContract
+                    ))
+
+                })
+
+            }
+
+            val validNFTPoolIssuerProxyBox: Boolean = {
+
+                val validValue: Boolean = (nftPoolIssuerProxyBoxOUT.value == 2 * MinERGForExistance)
+
+                val validContract: Boolean = (blake2b256(nftPoolIssuerProxyBoxOUT.propositionBytes) == NFTPoolIssuerProxyContractHash)
+
+                allOf(Coll(
+                    validValue,
+                    validContract
+                ))
+
+            }
+
             val validWhitelistIssuerProxyBox: Boolean = {
 
-                nftIssuerProxyBoxesOUT.forall({ nft })
+
 
             }
 
