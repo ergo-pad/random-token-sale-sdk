@@ -1,34 +1,46 @@
 {
     
     // ===== Contract Description ===== //
-    // Name: NFT Sale Proxy Contract
+    // Name: Random Token Sale Contract
+    // Description: Contract which selects the tokens to sell to the buyer randomly.
+    // Version: 1.0.0
+    // Author: Luca D'Angelo
+
+    // ===== Random Token Sale Tx ===== //
 
     // ===== Hard-Coded Constants ===== //
     val BuyerPK: SigmaProp = _BuyerPK
+    val TokenSaleNFT: Coll[Byte] = _TokenSaleNFT
+    val WhitelistToken: Option[Coll[Byte]] = _WhitelistToken
     val TokenPackSize: Byte = _TokenPackSize
+    val NumberOfRarityPools: Byte = getVar[Byte](0).get
+    val NumberOfIssuanceBoxes: Byte = getVar[Byte](1).get // for blitz this == TokenPackSize (i.e. token pack is just a subset of order |tokenPackSize| of the set of cards)
 
-    val validNFTSale: Boolean = {
+    val validRandomTokenSale: Boolean = {
 
         // ===== Inputs ===== //
-        val rngBox: Box = DataInputs(0)
-        val nftPoolStateBox: Box = INPUTS(0)
-        val nftRarityPoolBox: Box = INPUTS(1)
-        val nftIssuanceBox: Box = INPUTS(2)
-        val nftSaleProxyBox: Box = INPUTS(3)
+        val rngOracleDataPointBoxIN: Box = DataInputs(0)
+        val nftPoolStateBoxIN: Box = INPUTS(0)
+        val nftRarityPoolBoxesIN: Coll[Box] = INPUTS.slice(1, NumebrOfRarityPools+1)
+        val nftIssuanceBoxesIN: Box = INPUTS.slice(NumberOfRarityPools, NumberOfIssuanceBoxes+1)
+        val nftSaleProxyBoxIN: Box = INPUTS(INPUTS.size-1)
 
         // ===== Outputs ===== //
         val nftPoolStateBoxOUT: Box = OUTPUTS(0)
-        val nftRarityPoolBoxOUT: Box = OUTPUTS(1)
-        val nftIssuanceBoxOUT: Box = OUTPUTS(2)
-        val buyerPKBoxOUT: Box = OUTPUTS(3)
-        val userPKBox: Box = OUTPUTS(4)
+        val nftRarityPoolBoxesOUT: Box = OUTPUTS.slice(1, NumberOfRarityPools+1) // fix this later
+        val nftIssuanceBoxesOUT: Box = OUTPUTS.slice(NumberOfRarityPools, NumberOfIssuanceBoxes+1) // fix this later
+        val buyerPKBoxOUT: Box = OUTPUTS(OUTPUTS.size-5)
+        val userPKBoxOUT: Box = OUTPUTS(OUTPUTS.size-4)
+        val ergopadBoxOUT: Box = OUTPUTS(OUTPUTS.size-3)
+        val txOperatorBoxOUT: Box = OUTPUTS(OUTPUTS.size-2)
+        val minerFeeBoxOUT: Box = OUTPUTS(OUTPUTS.size-1)
 
-        val rng: BigInt = rngBox.R6[BigInt].get
+        val rngDataPoint: BigInt = rngBox.R6[BigInt].get
 	    val rand: BigInt = (nftPoolStateBox.id * rng + SELF.id)
 
         val nftPoolSize: Short = nftPoolStateBox.R4[Short].get
         val nftRarityPoolsAmount: Short = nftPoolStateBox.R5[Short].get
-        val nftRarityKeys: Coll[Short] = nftPoolStateBox.R6[Coll[Short]].get
+        val nftRarityPoolsKeys: Coll[Short] = nftPoolStateBox.R6[Coll[Short]].get
         val nftPoolKeyIndex: Int = (rand % rarityPoolsAmount).toInt
         val nftPoolKey: Short = nftRarityKeys(nftPoolKeyIndex)
         val nftPoolProof: Coll[Byte] = getVar[Coll[Byte]](0).get

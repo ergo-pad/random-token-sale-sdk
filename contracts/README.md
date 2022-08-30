@@ -1,8 +1,8 @@
 # Contracts
-Documentation for the ErgoPad Random NFT Sale contracts
+Scala library for the random token sale protocol.
 
-## Latest Version In Production
+## Version In Production
 
-## Version Currently In Development
+## Version In Development
 
 ## Versions Available
