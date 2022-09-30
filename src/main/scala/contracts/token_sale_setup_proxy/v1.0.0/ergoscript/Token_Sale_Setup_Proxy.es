@@ -6,25 +6,22 @@
     // Version: 1.0.0
     // Author: Luca D'Angelo
 
-    // ===== Token Sale Setup Tx Inputs ===== //
+    // ===== Token Sale Setup Tx ===== //
     // Description: Transaction initiates the minting process and transfers any whitelist tokens used for validation.
     // Data Inputs: None
     // Inputs: Token Sale Setup Proxy
-    // CEV: None
+    // Context Variables: None
     // Outputs: NFT Collection Issuer Proxy Box, ErgoPad Box, Tx Operator Box
 
     // ===== Contract Compile Time Constants ===== //
     // _IsWhitelist: Boolean
-    // _ErgoPadFee: Long
-    // _TxOperatorFee: Long
     // _ErgoPadPK: SigmaProp
     // _TxOperatorPK: SigmaProp
+    // _ErgoPadFee: Long
+    // _TxOperatorFee: Long
     // _MinerFee: Long
 
     validTokenSaleSetupTx: Boolean = {
-
-        // ===== Inputs ===== //
-        // Token Sale Setup Proxy
 
         // ===== Outputs ===== //
         val nftCollectionIssuerProxyBoxOUT: Box = OUTPUTS(0)
