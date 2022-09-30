@@ -29,7 +29,7 @@
         val txOperatorBoxOUT: Box = OUTPUTS(2)
         val minerBoxOUT: Box = OUTPUTS(3)
 
-        val validNFTCollectionIssuerProxy: Boolean = {
+        val validNFTCollectionIssuerProxyBox: Boolean = {
 
             val validValue: Boolean = {
                 (nftCollectionIssuerProxyBoxOUT.value == SELF.value - ergopadBoxOUT.value - txOperatorBoxOUT.value - minerBoxOUT.value)
@@ -76,7 +76,7 @@
         }
 
         allOf(Coll(
-            validNFTCollectionIssuerProxy,
+            validNFTCollectionIssuerProxyBox,
             validErgoPadBox,
             validTxOperatorBox,
             validMinerFee,
