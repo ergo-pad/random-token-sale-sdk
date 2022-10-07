@@ -11,10 +11,9 @@
     // Data Inputs: None
     // Inputs: Token Sale Setup Proxy
     // Context Variables: None
-    // Outputs: Token Collection Issuer Proxy Box, ErgoPad Box, Tx Operator Box
+    // Outputs: NFT Collection Issuer Proxy Box, ErgoPad Box, Tx Operator Box
 
     // ===== Contract Compile Time Constants ===== //
-    // _TokenCollectionIssuerProxyContractBytes: Coll[Byte]
     // _IsWhitelist: Boolean
     // _ErgoPadPK: SigmaProp
     // _TxOperatorPK: SigmaProp
@@ -25,29 +24,25 @@
     validTokenSaleSetupTx: Boolean = {
 
         // ===== Outputs ===== //
-        val tokenCollectionIssuerProxyBoxOUT: Box = OUTPUTS(0)
+        val nftCollectionIssuerProxyBoxOUT: Box = OUTPUTS(0)
         val ergopadBoxOUT: Box = OUTPUTS(1)
         val txOperatorBoxOUT: Box = OUTPUTS(2)
         val minerBoxOUT: Box = OUTPUTS(3)
 
-        val validTokenCollectionIssuerProxyBox: Boolean = {
+        val validNFTCollectionIssuerProxyBox: Boolean = {
 
             val validValue: Boolean = {
-                (tokenCollectionIssuerProxyBoxOUT.value == SELF.value - ergopadBoxOUT.value - txOperatorBoxOUT.value - minerBoxOUT.value)
-            }
-
-            val validContract: Boolean = {
-                (tokenCollectionIssuerProxyBoxOUT.propositionBytes == _TokenCollectionIssuerProxyContractBytes)
+                (nftCollectionIssuerProxyBoxOUT.value == SELF.value - ergopadBoxOUT.value - txOperatorBoxOUT.value - minerBoxOUT.value)
             }
 
             val validWhitelistTokens: Boolean = {
 
-                // The whitelist tokens must be transferred to the Token collection issuer box
+                // The whitelist tokens must be transferred to the NFT collection issuer box
                 if (_IsWhitelist) {
 
                     allOf(Coll(
                         SELF.tokens.forall({ token: (Coll[Byte], Long) => token._2 == 1L }),
-                        (tokenCollectionIssuerProxyBoxOUT.tokens == SELF.tokens)
+                        (nftCollectionIssuerProxyBoxOUT.tokens == SELF.tokens)
                     ))
 
                 } else {
@@ -81,7 +76,7 @@
         }
 
         allOf(Coll(
-            validTokenCollectionIssuerProxyBox,
+            validNFTCollectionIssuerProxyBox,
             validErgoPadBox,
             validTxOperatorBox,
             validMinerFee,
