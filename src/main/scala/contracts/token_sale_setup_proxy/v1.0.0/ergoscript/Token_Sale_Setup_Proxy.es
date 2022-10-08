@@ -13,6 +13,9 @@
     // Context Variables: None
     // Outputs: Token Collection Issuer Proxy Box, ErgoPad Box, Tx Operator Box
 
+    // ===== Box Registers ===== //
+    // R4: SigmaProp => UserPK
+
     // ===== Contract Compile Time Constants ===== //
     // _TokenCollectionIssuerProxyContractBytes: Coll[Byte]
     // _IsWhitelist: Boolean
@@ -55,6 +58,18 @@
                 }
 
             }
+
+            val validCollectionRegisterIssuerProperties: Boolean = {
+
+
+
+            }
+
+            allOf(Coll(
+                validValue,
+                validContract,
+                validWhitelistTokens
+            ))
 
         }
 
