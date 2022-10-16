@@ -1,6 +1,6 @@
-# Token Collection Issuer Proxy: v1.0.0
+# Token Collection Issuer: v1.0.0
 
-Version 1.0.0 of the Token Collection Issuer Proxy contract.
+Version 1.0.0 of the Token Collection Issuer contract.
 
 [ErgoScript](location)
 

@@ -25,10 +25,17 @@
     // _TxOperatorFee: Long
     // _MinerFee: Long
 
+    // ===== Contract Context Extension Variables ===== //
+    val collectionStandardVersion: Int = getVar[Int](0).get
+    val collectionInfo: Coll[Coll[Byte]] = getVar[Coll[Coll[Byte]]](1).get
+    val collectionSocials: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](2).get
+    val collectionMintingExpiry: Long = getVar[Long](3).get
+    val collectionAdditionalInfo: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](4).get
+
     validTokenSaleSetupTx: Boolean = {
 
         // ===== Outputs ===== //
-        val tokenCollectionIssuerProxyBoxOUT: Box = OUTPUTS(0)
+        val tokenCollectionIssuerBoxOUT: Box = OUTPUTS(0)
         val ergopadBoxOUT: Box = OUTPUTS(1)
         val txOperatorBoxOUT: Box = OUTPUTS(2)
         val minerBoxOUT: Box = OUTPUTS(3)
@@ -36,21 +43,21 @@
         val validTokenCollectionIssuerProxyBox: Boolean = {
 
             val validValue: Boolean = {
-                (tokenCollectionIssuerProxyBoxOUT.value == SELF.value - ergopadBoxOUT.value - txOperatorBoxOUT.value - minerBoxOUT.value)
+                (tokenCollectionIssuerBoxOUT.value == SELF.value - ergopadBoxOUT.value - txOperatorBoxOUT.value - minerBoxOUT.value)
             }
 
             val validContract: Boolean = {
-                (tokenCollectionIssuerProxyBoxOUT.propositionBytes == _TokenCollectionIssuerProxyContractBytes)
+                (tokenCollectionIssuerBoxOUT.propositionBytes == _TokenCollectionIssuerProxyContractBytes)
             }
 
             val validWhitelistTokens: Boolean = {
 
-                // The whitelist tokens must be transferred to the Token collection issuer box
+                // The whitelist tokens must be transferred to the token collection issuer box
                 if (_IsWhitelist) {
 
                     allOf(Coll(
                         SELF.tokens.forall({ token: (Coll[Byte], Long) => token._2 == 1L }),
-                        (tokenCollectionIssuerProxyBoxOUT.tokens == SELF.tokens)
+                        (tokenCollectionIssuerBoxOUT.tokens == SELF.tokens)
                     ))
 
                 } else {
@@ -59,16 +66,23 @@
 
             }
 
-            val validCollectionRegisterIssuerProperties: Boolean = {
+            val validCollectionIssuerProperties: Boolean = {
 
-
+                allOf(Coll(
+                    (tokenCollectionIssuerBoxOUT.R4[Int].get == collectionStandardVersion),
+                    (tokenCollectionIssuerBoxOUT.R5[Coll[Coll[Byte]]].get == collectionInfo),
+                    (tokenCollectionIssuerBoxOUT.R6[Coll[(Coll[Byte], Coll[Byte])]].get == collectionSocials),
+                    (tokenCollectionIssuerBoxOUT.R7[Long].get == collectionMintingExpiry),
+                    (tokenCollectionIssuerBoxOUT.R8[Coll[(Coll[Byte], Coll[Byte])]].get == collectionAdditionalInfo)
+                ))
 
             }
 
             allOf(Coll(
                 validValue,
                 validContract,
-                validWhitelistTokens
+                validWhitelistTokens,
+                validCollectionIssuerProperties
             ))
 
         }
@@ -96,7 +110,7 @@
         }
 
         allOf(Coll(
-            validTokenCollectionIssuerProxyBox,
+            validTokenCollectionIssuerBox,
             validErgoPadBox,
             validTxOperatorBox,
             validMinerFee,

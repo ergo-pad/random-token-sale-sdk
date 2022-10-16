@@ -1,6 +1,6 @@
-# Token Collection Issuer Proxy
+# Token Collection Issuer
 
-Documentation for the Token Collection Issuer Proxy contract.
+Documentation for the Token Collection Issuer contract.
 
 ## Version Currently In Use
 
