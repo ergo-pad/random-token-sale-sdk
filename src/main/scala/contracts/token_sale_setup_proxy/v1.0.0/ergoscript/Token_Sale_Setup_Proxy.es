@@ -11,13 +11,13 @@
     // Data Inputs: None
     // Inputs: Token Sale Setup Proxy
     // Context Variables: None
-    // Outputs: Token Collection Issuer Proxy Box, ErgoPad Box, Tx Operator Box
+    // Outputs: Token Collection Issuer Box, ErgoPad Box, Tx Operator Box
 
     // ===== Box Registers ===== //
     // R4: SigmaProp => UserPK
 
     // ===== Contract Compile Time Constants ===== //
-    // _TokenCollectionIssuerProxyContractBytes: Coll[Byte]
+    // _TokenCollectionIssuerContractBytes: Coll[Byte]
     // _IsWhitelist: Boolean
     // _ErgoPadPK: SigmaProp
     // _TxOperatorPK: SigmaProp
@@ -26,11 +26,12 @@
     // _MinerFee: Long
 
     // ===== Contract Context Extension Variables ===== //
-    val collectionStandardVersion: Int = getVar[Int](0).get
-    val collectionInfo: Coll[Coll[Byte]] = getVar[Coll[Coll[Byte]]](1).get
-    val collectionSocials: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](2).get
-    val collectionMintingExpiry: Long = getVar[Long](3).get
-    val collectionAdditionalInfo: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](4).get
+    val TokenCollectionIssuerContractBytes: Coll[Byte] = getVar[Coll[Byte]](0).get
+    val CollectionStandardVersion: Int = getVar[Int](1).get
+    val CollectionInfo: Coll[Coll[Byte]] = getVar[Coll[Coll[Byte]]](2).get
+    val CollectionSocials: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](3).get
+    val CollectionMintingExpiry: Long = -1L // Should be -1 for now, no feature for sending user collections tokens is implemented yet, thus no timestamp should be possible.
+    val CollectionAdditionalInfo: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](4).get
 
     validTokenSaleSetupTx: Boolean = {
 
@@ -47,7 +48,7 @@
             }
 
             val validContract: Boolean = {
-                (tokenCollectionIssuerBoxOUT.propositionBytes == _TokenCollectionIssuerProxyContractBytes)
+                (tokenCollectionIssuerBoxOUT.propositionBytes == TokenCollectionIssuerProxyContractBytes)
             }
 
             val validWhitelistTokens: Boolean = {
@@ -69,11 +70,11 @@
             val validCollectionIssuerProperties: Boolean = {
 
                 allOf(Coll(
-                    (tokenCollectionIssuerBoxOUT.R4[Int].get == collectionStandardVersion),
-                    (tokenCollectionIssuerBoxOUT.R5[Coll[Coll[Byte]]].get == collectionInfo),
-                    (tokenCollectionIssuerBoxOUT.R6[Coll[(Coll[Byte], Coll[Byte])]].get == collectionSocials),
-                    (tokenCollectionIssuerBoxOUT.R7[Long].get == collectionMintingExpiry),
-                    (tokenCollectionIssuerBoxOUT.R8[Coll[(Coll[Byte], Coll[Byte])]].get == collectionAdditionalInfo)
+                    (tokenCollectionIssuerBoxOUT.R4[Int].get == CollectionStandardVersion),
+                    (tokenCollectionIssuerBoxOUT.R5[Coll[Coll[Byte]]].get == CollectionInfo),
+                    (tokenCollectionIssuerBoxOUT.R6[Coll[(Coll[Byte], Coll[Byte])]].get == CollectionSocials),
+                    (tokenCollectionIssuerBoxOUT.R7[Long].get == CollectionMintingExpiry),
+                    (tokenCollectionIssuerBoxOUT.R8[Coll[(Coll[Byte], Coll[Byte])]].get == CollectionAdditionalInfo)
                 ))
 
             }
