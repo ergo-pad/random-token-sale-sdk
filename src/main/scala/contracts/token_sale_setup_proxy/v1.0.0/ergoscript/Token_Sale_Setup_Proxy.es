@@ -30,7 +30,7 @@
     val CollectionStandardVersion: Int = getVar[Int](1).get
     val CollectionInfo: Coll[Coll[Byte]] = getVar[Coll[Coll[Byte]]](2).get
     val CollectionSocials: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](3).get
-    val CollectionMintingExpiry: Long = -1L // Should be -1 for now, no feature for sending user collections tokens is implemented yet, thus no timestamp should be possible.
+    val CollectionMintingExpiry: Long = -1L // Should be -1 for now, no feature for send collections tokens back to the user is implemented yet, thus no timestamp should be possible.
     val CollectionAdditionalInfo: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](4).get
 
     validTokenSaleSetupTx: Boolean = {
@@ -48,7 +48,7 @@
             }
 
             val validContract: Boolean = {
-                (tokenCollectionIssuerBoxOUT.propositionBytes == TokenCollectionIssuerProxyContractBytes)
+                (tokenCollectionIssuerBoxOUT.propositionBytes == TokenCollectionIssuerContractBytes)
             }
 
             val validWhitelistTokens: Boolean = {
@@ -101,7 +101,7 @@
 
             allOf(Coll(
                 (txOperatorBoxOUT.value == _TxOperatorFee),
-                (txOperatorBoxOUT.propositionBytes == _TxOperatorPK)
+                (txOperatorBoxOUT.propositionBytes == _TxOperatorPK.propBytes)
             ))
 
         }
@@ -120,6 +120,6 @@
 
     }
 
-    sigmaProp(validTokenSaleSetupTx)
+    sigmaProp(validTokenSaleSetupTx) && _TxOperatorPK
 
 }

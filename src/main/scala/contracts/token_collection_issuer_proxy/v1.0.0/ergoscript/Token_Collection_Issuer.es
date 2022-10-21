@@ -23,6 +23,7 @@
     // ===== Compile Time Constants ===== //
     // _RarityPoolsAmount: Long
     // _IsWhitelist: Boolean
+    // _TxOperatorPK: SigmaProp
     // _MinerFee: Long
 
     // ===== Context Extension Variables ===== //
@@ -30,7 +31,7 @@
     val CollectionTokenVerboseName: Coll[Byte] = getVar[Coll[Byte]](1).get
     val CollectionTokenDescription: Coll[Byte] = getVar[Coll[Byte]](2).get
     val CollectionTokenNumberOfDecimals: Coll[Byte] = getVar[Coll[Byte]](3).get // Should be 0, encoded according to EIP-4
-    val CollectionTokenAssetType: Coll[Byte] = Coll(3.toByte, 2.toByte) // The asset type category should be Utility-Token (or NFT Artwork?)
+    val CollectionTokenAssetType: Coll[Byte] = Coll(1.toByte, 4.toByte) // The asset type is NFT-Artwork
     val CollectionTokenPictureSHA256Hash: Coll[Byte] = Coll[Byte]() // Should just be empty Coll[Byte](), if Utility-Token
     val CollectionTokenPictureLink: Coll[Byte] = Coll[Byte]() // Should just be empty Coll[Byte](), if Utility-Token
 
@@ -106,6 +107,6 @@
 
     }
 
-    sigmaProp(validTokenCollectionMintTx)
+    sigmaProp(validTokenCollectionMintTx) && _TxOperatorPK
 
 }
