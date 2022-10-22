@@ -41,7 +41,7 @@
         val txOperatorBoxOUT: Box = OUTPUTS(2)
         val minerBoxOUT: Box = OUTPUTS(3)
 
-        val validTokenCollectionIssuerProxyBox: Boolean = {
+        val validTokenCollectionIssuerBox: Boolean = {
 
             val validValue: Boolean = {
                 (tokenCollectionIssuerBoxOUT.value == SELF.value - ergopadBoxOUT.value - txOperatorBoxOUT.value - minerBoxOUT.value)
