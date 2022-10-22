@@ -10,7 +10,6 @@
     // Description: Transaction initiates the minting process and transfers any whitelist tokens used for validation.
     // Data Inputs: None
     // Inputs: Token Sale Setup Proxy
-    // Context Variables: None
     // Outputs: Token Collection Issuer Box, ErgoPad Box, Tx Operator Box
 
     // ===== Box Registers ===== //
