@@ -13,6 +13,7 @@
     // Outputs: Token Collection Issuer Box, ErgoPad Box, Tx Operator Box
 
     // ===== Box Registers ===== //
+    // Tokens: Whitelist Tokens
     // R4: SigmaProp => UserPK
 
     // ===== Contract Compile Time Constants ===== //
@@ -99,13 +100,13 @@
         val validTxOperatorBox: Boolean = {
 
             allOf(Coll(
-                (txOperatorBoxOUT.value == _TxOperatorFee),
+               ( txOperatorBoxOUT.value == _TxOperatorFee),
                 (txOperatorBoxOUT.propositionBytes == _TxOperatorPK.propBytes)
             ))
 
         }
 
-        val validMinerFee: Boolean = {
+        val validMinerBox: Boolean = {
             (minerBoxOUT.value == _MinerFee)
         }
 
@@ -113,7 +114,7 @@
             validTokenCollectionIssuerBox,
             validErgoPadBox,
             validTxOperatorBox,
-            validMinerFee,
+            validMinerBox,
             (OUTPUTS.size == 4)
         ))
 

@@ -14,6 +14,7 @@
     // Outputs: Token Collection Issuance Box
 
     // ===== Box Registers ===== //
+    // Tokens: Whitelist Tokens
     // R4: Int                              => Collection Standard Version
     // R5: Coll[Coll[Byte]]                 => Collection Information
     // R6: Coll[(Coll[Byte], Coll[Byte])]   => Social Media Information
@@ -32,8 +33,6 @@
     val CollectionTokenDescription: Coll[Byte] = getVar[Coll[Byte]](2).get
     val CollectionTokenNumberOfDecimals: Coll[Byte] = getVar[Coll[Byte]](3).get // Should be 0, encoded according to EIP-4
     val CollectionTokenAssetType: Coll[Byte] = Coll(1.toByte, 4.toByte) // The asset type is NFT-Artwork
-    val CollectionTokenPictureSHA256Hash: Coll[Byte] = Coll[Byte]() // Should just be empty Coll[Byte](), if Utility-Token
-    val CollectionTokenPictureLink: Coll[Byte] = Coll[Byte]() // Should just be empty Coll[Byte](), if Utility-Token
 
     validTokenCollectionMintTx: Boolean = {
 
@@ -59,7 +58,7 @@
 
             val validWhitelistTokens: Boolean = {
 
-                // The whitelist tokens must be transferred to the Token Collection Issuance box
+                // The whitelist tokens must be transferred to the token collection issuance box
                 if (_IsWhitelist) {
 
                     allOf(Coll(
@@ -79,9 +78,7 @@
                     (tokenCollectionIssuanceBoxOUT.R4[Coll[Byte]].get == CollectionTokenVerboseName),
                     (tokenCollectionIssuanceBoxOUT.R5[Coll[Byte]].get == CollectionTokenDescription),
                     (tokenCollectionIssuanceBoxOUT.R6[Coll[Byte]].get == CollectionTokenNumberOfDecimals),
-                    (tokenCollectionIssuanceBoxOUT.R7[Coll[Byte]].get == CollectionTokenAssetType),
-                    (tokenCollectionIssuanceBoxOUT.R8[Coll[Byte]].get == CollectionTokenPictureSHA256Hash),
-                    (tokenCollectionIssuanceBoxOUT.R9[Coll[Byte]].get == CollectionTokenPictureLink)
+                    (tokenCollectionIssuanceBoxOUT.R7[Coll[Byte]].get == CollectionTokenAssetType)
                 ))
 
             }
@@ -95,13 +92,13 @@
 
         }
 
-        val validMinerFee: Boolean = {
+        val validMinerBox: Boolean = {
             (minerBoxOUT.value == _MinerFee)
         }
 
         allOf(Coll(
             validTokenCollectionIssuanceBox,
-            validMinerFee,
+            validMinerBox,
             (OUTPUTS.size == 2)
         ))
 
