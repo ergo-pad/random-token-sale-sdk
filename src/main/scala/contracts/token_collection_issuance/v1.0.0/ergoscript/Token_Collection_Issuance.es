@@ -85,7 +85,7 @@
             // 1. the token issuer boxes (even boxes > 0)
             // 2. the token rarity pool boxes (odd boxes > 1)
 
-            tokenIssuerIndices.forall({ (index: Int) =>
+            tokenIssuerIndices.forall({ (index: Int) => // recall: index is an even number > 0
 
                 val tokenIssuerBoxOUT: Box = OUTPUTS(index)
                 val tokenRarityPoolBoxOUT: Box = OUTPUTS(index + 1)
@@ -97,7 +97,7 @@
                     }
 
                     val validContract: Boolean = {
-                       (tokenIssuerBoxOUT.propositionBytes == TokenIssuersContractBytes(index - 2)) // Offset the first two output boxes
+                       (tokenIssuerBoxOUT.propositionBytes == TokenIssuersContractBytes((index - 2)/2)) // Map the even number to the Natural numbers.
                     }
 
                     val validCollectionToken: Boolean = {
@@ -113,7 +113,7 @@
                     }
 
                     val validContract: Boolean = {
-                        (tokenRarityPoolBoxOUT.propositionBytes == TokenRarityPoolsContractBytes(index - 2)) // Offset the first two output boxes
+                        (tokenRarityPoolBoxOUT.propositionBytes == TokenRarityPoolsContractBytes((index - 2)/2)) // Map the even number to the Natural numbers.
                     }
 
                 }
