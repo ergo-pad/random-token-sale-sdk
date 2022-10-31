@@ -32,9 +32,9 @@
     val CollectionTokenVerboseName: Coll[Byte] = getVar[Coll[Byte]](1).get
     val CollectionTokenDescription: Coll[Byte] = getVar[Coll[Byte]](2).get
     val CollectionTokenNumberOfDecimals: Coll[Byte] = getVar[Coll[Byte]](3).get // Should be 0, encoded according to EIP-4
-    val CollectionTokenAssetType: Coll[Byte] = Coll(1.toByte, 4.toByte) // The asset type is NFT-Artwork
+    val CollectionTokenAssetType: Coll[Byte] = getVar[Coll[Byte]](4).get // The asset type is NFT - Artwork Collection
 
-    validTokenCollectionMintTx: Boolean = {
+    val validTokenCollectionMintTx: Boolean = {
 
         // ===== Outputs ===== //
         val tokenCollectionIssuanceBoxOUT: Box = OUTPUTS(0)

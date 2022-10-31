@@ -30,10 +30,10 @@
     val CollectionStandardVersion: Int = getVar[Int](1).get
     val CollectionInfo: Coll[Coll[Byte]] = getVar[Coll[Coll[Byte]]](2).get
     val CollectionSocials: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](3).get
-    val CollectionMintingExpiry: Long = -1L // Should be -1 for now, no feature for send collections tokens back to the user is implemented yet, thus no timestamp should be possible.
+    val CollectionMintingExpiry: Long = getVar[Long](4).get // Should be -1 for now, no feature for send collections tokens back to the user is implemented yet, thus no timestamp should be possible.
     val CollectionAdditionalInfo: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](4).get
 
-    validTokenSaleSetupTx: Boolean = {
+    val validTokenSaleSetupTx: Boolean = {
 
         // ===== Outputs ===== //
         val tokenCollectionIssuerBoxOUT: Box = OUTPUTS(0)

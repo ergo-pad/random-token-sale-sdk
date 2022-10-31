@@ -32,7 +32,7 @@
     val TokenIssuersContractBytes: Coll[Coll[Byte]] = getVar[Coll[Coll[Byte]]](2).get
     val TokenRarityPoolsContractBytes: Coll[Coll[Byte]] = getVar[Coll[Coll[Byte]]](3).get
 
-    validRarityPoolModulesCreationTx: Boolean = {
+    val validRarityPoolModulesCreationTx: Boolean = {
 
         // ===== Outputs ===== //
         val tokenSaleIssuerBoxOUT: Box = OUTPUTS(0)
