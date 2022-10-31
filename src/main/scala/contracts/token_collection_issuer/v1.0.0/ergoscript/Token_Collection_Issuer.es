@@ -24,6 +24,7 @@
     // ===== Compile Time Constants ===== //
     // _RarityPoolsAmount: Long
     // _IsWhitelist: Boolean
+    // _CollectionIssuanceBoxValue: Long
     // _TxOperatorPK: SigmaProp
     // _MinerFee: Long
 
@@ -43,7 +44,7 @@
         val validTokenCollectionIssuanceBox: Boolean = {
 
             val validValue: Boolean = {
-                (tokenCollectionIssuanceBoxOUT.value == SELF.value - minerBoxOUT.value)
+                (tokenCollectionIssuanceBoxOUT.value == _CollectionIssuanceBoxValue)
             }
 
             val validContract: Boolean = {

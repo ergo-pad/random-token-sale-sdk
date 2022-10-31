@@ -22,7 +22,10 @@
     // ===== Compile Time Constants ===== //
     // _RarityPoolsAmount: Long
     // _IsWhitelist: Boolean
-    // _ProtocolBoxValue: Long
+    // _TokenSaleIssuerBoxValue: Long
+    // _TokenPoolStateBoxValue: Long
+    // _TokenIssuerBoxValue: Long
+    // _TokenRarityPoolBoxValue: Long
     // _TxOperatorPK: SigmaProp
     // _MinerFee: Long
 
@@ -42,7 +45,7 @@
         val validTokenSaleIssuerBox: Boolean = {
 
             val validValue: Boolean = {
-                (tokenSaleIssuerBoxOUT.value == _ProtocolBoxValue)
+                (tokenSaleIssuerBoxOUT.value == _TokenSaleIssuerBoxValue)
             }
 
             val validContract: Boolean = {
@@ -54,7 +57,7 @@
         val validTokenPoolStateBox: Boolean = {
 
             val validValue: Boolean = {
-                (tokenPoolStateBoxOUT.value == _ProtocolBoxValue)
+                (tokenPoolStateBoxOUT.value == _TokenPoolStateBoxValue)
             }
 
             val validContract: Boolean = {
@@ -85,7 +88,7 @@
             // 1. the token issuer boxes (even boxes > 0)
             // 2. the token rarity pool boxes (odd boxes > 1)
 
-            tokenIssuerIndices.forall({ (index: Int) => // recall: index is an even number > 0
+            tokenIssuerIndices.forall({ (index: Int) => // Recall: index is an even number > 0
 
                 val tokenIssuerBoxOUT: Box = OUTPUTS(index)
                 val tokenRarityPoolBoxOUT: Box = OUTPUTS(index + 1)
@@ -93,7 +96,7 @@
                 val validTokenIssuerBox: Boolean = {
 
                     val validValue: Boolean = {
-                        (tokenIssuerBoxOUT.value = _ProtocolBoxValue)
+                        (tokenIssuerBoxOUT.value = _TokenIssuerBoxValue)
                     }
 
                     val validContract: Boolean = {
@@ -109,7 +112,7 @@
                 val validTokenRarityPoolBox: Boolean = {
                     
                     val validValue: Boolean = {
-                        (tokenRarityPoolBoxOUT.value == _ProtocolBoxValue)
+                        (tokenRarityPoolBoxOUT.value == _TokenRarityPoolBoxValue)
                     }
 
                     val validContract: Boolean = {

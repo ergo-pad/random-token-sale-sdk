@@ -17,8 +17,8 @@
     // R4: SigmaProp => UserPK
 
     // ===== Contract Compile Time Constants ===== //
-    // _TokenCollectionIssuerContractBytes: Coll[Byte]
     // _IsWhitelist: Boolean
+    // _CollecionIssuerBoxValue: Boolean
     // _ErgoPadPK: SigmaProp
     // _TxOperatorPK: SigmaProp
     // _ErgoPadFee: Long
@@ -44,7 +44,7 @@
         val validTokenCollectionIssuerBox: Boolean = {
 
             val validValue: Boolean = {
-                (tokenCollectionIssuerBoxOUT.value == SELF.value - ergopadBoxOUT.value - txOperatorBoxOUT.value - minerBoxOUT.value)
+                (tokenCollectionIssuerBoxOUT.value == _CollecionIssuerBoxValue)
             }
 
             val validContract: Boolean = {
