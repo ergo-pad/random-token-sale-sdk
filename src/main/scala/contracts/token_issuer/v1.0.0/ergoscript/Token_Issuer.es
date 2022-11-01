@@ -23,6 +23,7 @@
     // ===== Compile Time Constants ===== //
     // _IsCollection: Boolean
     // _TokenIssuanceBoxValue: Long
+    // _TokenAmount: Long
     // _TxOperatorPK: SigmaProp
     // _MinerFee: Long
 
@@ -53,6 +54,10 @@
                 (tokenIssuanceBoxOUT.propositionBytes == TokenIssuanceContractBytes)
             }
 
+            val validTokens: Boolean = {
+                (tokenIssuanceBoxOUT.tokens(0) == (SELF.id, _TokenAmount))
+            }
+
             val validTokenIssuanceProperties: Boolean = {
 
                 allOf(Coll(
@@ -69,6 +74,7 @@
             allOf(Coll(
                 validValue,
                 validContract,
+                validTokens,
                 validTokenIssuanceProperties
             ))
 
