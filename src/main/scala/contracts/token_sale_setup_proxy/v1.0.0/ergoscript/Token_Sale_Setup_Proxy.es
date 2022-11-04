@@ -10,15 +10,15 @@
     // Description: Transaction initiates the minting process and transfers any whitelist tokens used for validation.
     // Data Inputs: None
     // Inputs: Token Sale Setup Proxy
-    // Context Variables: None
     // Outputs: Token Collection Issuer Box, ErgoPad Box, Tx Operator Box
 
     // ===== Box Registers ===== //
+    // Tokens: Whitelist Tokens
     // R4: SigmaProp => UserPK
 
     // ===== Contract Compile Time Constants ===== //
-    // _TokenCollectionIssuerContractBytes: Coll[Byte]
     // _IsWhitelist: Boolean
+    // _CollecionIssuerBoxValue: Boolean
     // _ErgoPadPK: SigmaProp
     // _TxOperatorPK: SigmaProp
     // _ErgoPadFee: Long
@@ -30,10 +30,10 @@
     val CollectionStandardVersion: Int = getVar[Int](1).get
     val CollectionInfo: Coll[Coll[Byte]] = getVar[Coll[Coll[Byte]]](2).get
     val CollectionSocials: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](3).get
-    val CollectionMintingExpiry: Long = -1L // Should be -1 for now, no feature for send collections tokens back to the user is implemented yet, thus no timestamp should be possible.
+    val CollectionMintingExpiry: Long = getVar[Long](4).get // Should be -1 for now, no feature for send collections tokens back to the user is implemented yet, thus no timestamp should be possible.
     val CollectionAdditionalInfo: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](4).get
 
-    validTokenSaleSetupTx: Boolean = {
+    val validTokenSaleSetupTx: Boolean = {
 
         // ===== Outputs ===== //
         val tokenCollectionIssuerBoxOUT: Box = OUTPUTS(0)
@@ -44,7 +44,7 @@
         val validTokenCollectionIssuerBox: Boolean = {
 
             val validValue: Boolean = {
-                (tokenCollectionIssuerBoxOUT.value == SELF.value - ergopadBoxOUT.value - txOperatorBoxOUT.value - minerBoxOUT.value)
+                (tokenCollectionIssuerBoxOUT.value == _CollecionIssuerBoxValue)
             }
 
             val validContract: Boolean = {
@@ -100,13 +100,13 @@
         val validTxOperatorBox: Boolean = {
 
             allOf(Coll(
-                (txOperatorBoxOUT.value == _TxOperatorFee),
+               ( txOperatorBoxOUT.value == _TxOperatorFee),
                 (txOperatorBoxOUT.propositionBytes == _TxOperatorPK.propBytes)
             ))
 
         }
 
-        val validMinerFee: Boolean = {
+        val validMinerBox: Boolean = {
             (minerBoxOUT.value == _MinerFee)
         }
 
@@ -114,7 +114,7 @@
             validTokenCollectionIssuerBox,
             validErgoPadBox,
             validTxOperatorBox,
-            validMinerFee,
+            validMinerBox,
             (OUTPUTS.size == 4)
         ))
 
