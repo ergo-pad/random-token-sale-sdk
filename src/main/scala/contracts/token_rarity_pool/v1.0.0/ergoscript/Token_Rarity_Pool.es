@@ -39,52 +39,145 @@
 
     // ===== Box Registers ===== //
     // R4: AvlTree => Token References
-    // R5: Short => Rarity Pool Size
+    // R5: Short => Rarity Pool Size Limit
+    // R6: Short => Current Rarity Pool Size
+    // R7: Byte => Mint Type
 
     // ===== Compile Time Constants ===== //
-    // _MintType: Byte
-    // _RarityPoolSize: Long
-    // _TokenIssuanceBoxValue: Long
-    // _TxOperatorPK: SigmaProp
-    // _MinerFee: Long
+    // _ctTokenIssuanceBoxValue: Long
+    // _ctTxOperatorPK: SigmaProp
+    // _ctMinerFee: Long
 
     // ===== Context Extension Variables ===== //
-    val TxType: Byte = getVar[Byte](0).get
+    val _cvTxType: Byte = getVar[Byte](0).get
+    val _rgMintType: Byte = SELF.R7[Byte].get
 
     // ===== Mint Type ===== //
-    // 0: Token Mint (TokenAmount > 1)
-    // 1: On-Demand NFT Mint (TokenAmount == 1)
+    // 1: Token Mint (TokenAmount > 1)
+    // 2: On-Demand NFT Mint (TokenAmount == 1)
 
     // ===== Tx Types ===== //
-    // 0: Token Mint Tx
-    // 1: Singleton Token Mint Tx
-    // 2: Token Sale Tx
-    // 3: Token Burn Tx
-    // 4: Reclaim Tokens Tx
+    // 1: Token Mint Tx
+    // 2: Singleton Token Mint Tx
+    // 3: Token Sale Tx
+    // 4: Token Burn Tx
+    // 5: Reclaim Tokens Tx
 
     // ===== Tx Sub-Types ===== //
-    // 0: Initial Token Burn Tx
-    // 1: Subsequent Token Burn Tx
-    // 2: Final Token Burn Tx
-    // 3: Initial Reclaim Tokens Tx
-    // 4: Subsequent Reclaim Tokens Tx
-    // 5: Final Reclaim Tokens Tx
+    // 11: Initial Token Mint Tx
+    // 12: Final Token Mint Tx
+    // 21: Initial Token Burn Tx
+    // 22: Subsequent Token Burn Tx
+    // 23: Final Token Burn Tx
+    // 31: Initial Reclaim Tokens Tx
+    // 32: Subsequent Reclaim Tokens Tx
+    // 33: Final Reclaim Tokens Tx
 
-    if (TxType == 0) {
+    if (_cvTxType == 1) {
 
         // ===== Context Extension Variables ===== //
-        val AVLKeyVals: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](1).get
-        val AVLProof: Coll[Byte] = getVar[Coll[Byte]](2).get
+        val _cvTxSubType: Byte = getVar[Byte](1).get
+        val _cvAVLKeyVals: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](2).get
+        val _cvAVLProof: Coll[Byte] = getVar[Coll[Byte]](3).get
 
-        val validTokenMintTx: Boolean = {
+        if (_rgMintType == 1) {
 
+            val validTokenMintTx: Boolean = {
 
+                // ===== Inputs ===== //
+                val tokenIssuerBoxIN: Box = INPUTS(0)
 
+                // ===== Outputs ===== //
+                val tokenRarityPoolBoxOUT: Box = if (_cvTxSubType == 11) OUTPUTS(2) else OUTPUTS(1)
+                val minerBoxOUT: Box = OUTPUTS(OUTPUTS.size-1)
+
+                // ===== Relevant Variables ===== //
+                val _rgRarityPoolSizeLimit: Short = SELF.R5[Short].get
+                val _rgCurrentRarityPoolSize: Short = SELF.R6[Short].get
+
+                val validTokenRarityPoolBox: Boolean = {
+
+                    val validSelfReplication: Boolean = {
+
+                        allOf(Coll(
+                            (tokenRarityPoolBoxOUT.value == SELF.value - _ctMinerFee),
+                            (tokenRarityPoolBoxOUT.propositionBytes == SELF.propositionBytes),
+                            (tokenRarityPoolBoxOUT.R5[Short].get == _rgRarityPoolSizeLimit)
+                            (tokenRarityPoolBoxOUT.R6[Short].get == _rgCurrentRarityPoolSize + 1),
+                            (tokenRarityPoolBoxOUT.R6[Short].get <= _rgRarityPoolSizeLimit),
+                            (tokenRarityPoolBoxOUT.R7[Byte] == _rgMintType)
+                        ))
+
+                    }
+
+                    // We want to check the following:
+                    // 1. That the key is valid, i.e. the avl tree is adding the token in the correct location.
+                    // 2. That the value corresponds to the minted token id.
+                    // 3. That an entry was actually inserted into the avl tree.
+                    val validAVLTree: Boolean = {
+
+                        val validKeyVals: Boolean = {
+
+                            val avlKey: Int = byteArrayToLong(_cvAVLKeyVals(0)._1).toInt
+                            val avlVal: Coll[Byte] = _cvAVLKeyVals(0)._2
+                            
+                            if (_rgCurrentRarityPoolSize < _rgRarityPoolSizeLimit) {
+
+                                allOf(Coll(
+                                    (avlKey == _rgCurrentRarityPoolSize.toInt),
+                                    (avlVal == tokenIssuerBoxIN.id)
+                                ))
+
+                            } else {
+                                false
+                            }
+
+                        }
+
+                        val validInsertion: Boolean = {
+
+                            val avlTree: AvlTree = SELF.R4[AvlTree].get
+                            val newAVLTree: AvlTree = avlTree.insert(_cvAVLKeyVals, _cvAVLProof).get
+                            val newDigest: Coll[Byte] = newAVLTree.digest
+
+                            (tokenRarityPoolBoxOUT.R4[AvlTree].get.digest == newDigest)
+
+                        }
+
+                        allOf(Coll(
+                            validKeyVals,
+                            validInsertion
+                        ))
+
+                    }
+
+                    allOf(Coll(
+                        validSelfReplication,
+                        validAVLTree
+                    ))
+
+                }
+
+                val validMinerBox: Boolean = {
+                    (minerBoxOUT.value == _ctMinerFee)
+                }
+
+                allOf(Coll(
+                    validTokenRarityPoolBox,
+                    validMinerBox
+                ))
+
+            }  
+
+            sigmaProp(validTokenMintTx) 
+
+        } else {
+
+            sigmaProp(false)
+        
         }
 
-        sigmaProp(validTokenMintTx)
-
-    } else if (TxType == 1) {
+    } else if (_cvTxType == 1) {
 
         val validSingletonTokenMintTx: Boolean = {
             
@@ -94,7 +187,7 @@
 
         sigmaProp(validSingletonTokenMintTx)
 
-    } else if (TxType == 2) {
+    } else if (_cvTxType == 2) {
 
         val validTokenSaleTx: Boolean = {
 
@@ -104,22 +197,22 @@
 
         sigmaProp(validTokenSaleTx)
 
-    } else if (TxType == 3) {
+    } else if (_cvTxType == 3) {
 
         // ===== Context Extension Variables ===== //
-        val TxSubType: Option[Byte] = getVar[Byte](1).get
-        val AVLKeyVals: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](2).get
-        val AVLProof: Coll[Byte] = getVar[Coll[Byte]](3).get
+        val _cvTxSubType: Byte = getVar[Byte](1).get
+        val _cvAVLKeyVals: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](2).get
+        val _cvAVLProof: Coll[Byte] = getVar[Coll[Byte]](3).get
 
-        if (TxSubType == 0) {
-
-
-
-        } else if (TxSubType == 1) {
+        if (_cvTxSubType == 0) {
 
 
 
-        } else if (TxSubType == 2) {
+        } else if (_cvTxSubType == 1) {
+
+
+
+        } else if (_cvTxSubType == 2) {
 
 
 
@@ -129,22 +222,22 @@
         
         }
 
-    } else if (TxType == 4) {
+    } else if (_cvTxType == 4) {
 
         // ===== Context Extension Variables ===== //
         val TxSubType: Option[Byte] = getVar[Byte](1).get
         val AVLKeyVals: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](2).get
         val AVLProof: Coll[Byte] = getVar[Coll[Byte]](3).get
 
-        if (TxSubType == 3) {
+        if (_cvTxSubType == 3) {
 
 
 
-        } else if (TxSubType === 4) {
+        } else if (_cvTxSubType === 4) {
 
 
 
-        } else if (TxSubType == 5) {
+        } else if (_cvTxSubType == 5) {
 
             
 

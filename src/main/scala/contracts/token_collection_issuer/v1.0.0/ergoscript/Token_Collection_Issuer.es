@@ -39,7 +39,7 @@
 
         // ===== Outputs ===== //
         val tokenCollectionIssuanceBoxOUT: Box = OUTPUTS(0)
-        val minerBoxOUT: Box = OUTPUTS(1)
+        val minerBoxOUT: Box = OUTPUTS(OUTPUTS.size-1)
 
         val validTokenCollectionIssuanceBox: Boolean = {
 

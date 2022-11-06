@@ -85,6 +85,7 @@
 
             if(!isFinalTokenMintTx) {
 
+                // ===== Outputs ===== //
                 val tokenIssuerBoxOUT: Box = OUTPUTS(1)
 
                 val validValue: Boolean = {

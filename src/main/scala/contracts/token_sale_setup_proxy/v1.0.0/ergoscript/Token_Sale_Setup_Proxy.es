@@ -39,7 +39,7 @@
         val tokenCollectionIssuerBoxOUT: Box = OUTPUTS(0)
         val ergopadBoxOUT: Box = OUTPUTS(1)
         val txOperatorBoxOUT: Box = OUTPUTS(2)
-        val minerBoxOUT: Box = OUTPUTS(3)
+        val minerBoxOUT: Box = OUTPUTS(OUTPUTS.size-1)
 
         val validTokenCollectionIssuerBox: Boolean = {
 

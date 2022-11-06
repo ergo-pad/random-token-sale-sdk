@@ -41,7 +41,8 @@
         val tokenSaleIssuerBoxOUT: Box = OUTPUTS(0)
         val tokenPoolStateBoxOUT: Box = OUTPUTS(1)
         val tokenIssuerIndices: Coll[Int] = OUTPUTS.indices.filter({ (index: Int) => (index > 0) && (index % 2 == 0) }) // We only want the even indices greater than 0.
-        
+        val minerBoxOUT: Box = OUTPUTS(OUTPUTS.size-1)
+
         val validTokenSaleIssuerBox: Boolean = {
 
             val validValue: Boolean = {
