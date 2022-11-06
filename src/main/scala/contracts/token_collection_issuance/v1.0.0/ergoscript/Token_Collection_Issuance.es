@@ -13,7 +13,7 @@
     // Outputs: Token Sale Issuer, Token Pool Sate Box, Token Issuer i, Token Rarity Pool i
 
     // ===== Box Registers ===== //
-    // Token: Whitelist Tokens
+    // Tokens: Whitelist Tokens
     // R4: Coll[Byte] => Collection Token Verbose Name
     // R5: Coll[Byte] => Collection Token Description
     // R6: Coll[Byte] => Collection Token Number of Decimals

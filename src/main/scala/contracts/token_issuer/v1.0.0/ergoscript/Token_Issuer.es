@@ -13,6 +13,7 @@
     // Outputs: Token Issuance Box i, Token Issuer Box (i+1), Token Rarity Pool Box j
 
     // ===== Box Registers ===== //
+    // Tokens: Collection Token
     // R4: Int                                                                                                  => Royalty Percentage
     // R5: Int                                                                                                  => Artwork Standard Version
     // R6: Coll[(Coll[Byte], Int)]                                                                              => Royalty Recipient Information 
