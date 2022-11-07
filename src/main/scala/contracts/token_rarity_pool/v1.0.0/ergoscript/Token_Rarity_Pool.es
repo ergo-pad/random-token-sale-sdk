@@ -177,7 +177,7 @@
         
         }
 
-    } else if (_cvTxType == 1) {
+    } else if (_cvTxType == 2) {
 
         val validSingletonTokenMintTx: Boolean = {
             
@@ -187,7 +187,7 @@
 
         sigmaProp(validSingletonTokenMintTx)
 
-    } else if (_cvTxType == 2) {
+    } else if (_cvTxType == 3) {
 
         val validTokenSaleTx: Boolean = {
 
@@ -197,22 +197,22 @@
 
         sigmaProp(validTokenSaleTx)
 
-    } else if (_cvTxType == 3) {
+    } else if (_cvTxType == 4) {
 
         // ===== Context Extension Variables ===== //
         val _cvTxSubType: Byte = getVar[Byte](1).get
         val _cvAVLKeyVals: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](2).get
         val _cvAVLProof: Coll[Byte] = getVar[Coll[Byte]](3).get
 
-        if (_cvTxSubType == 0) {
+        if (_cvTxSubType == 21) {
 
 
 
-        } else if (_cvTxSubType == 1) {
+        } else if (_cvTxSubType == 22) {
 
 
 
-        } else if (_cvTxSubType == 2) {
+        } else if (_cvTxSubType == 23) {
 
 
 
@@ -222,22 +222,22 @@
         
         }
 
-    } else if (_cvTxType == 4) {
+    } else if (_cvTxType == 5) {
 
         // ===== Context Extension Variables ===== //
         val TxSubType: Option[Byte] = getVar[Byte](1).get
         val AVLKeyVals: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](2).get
         val AVLProof: Coll[Byte] = getVar[Coll[Byte]](3).get
 
-        if (_cvTxSubType == 3) {
+        if (_cvTxSubType == 31) {
 
 
 
-        } else if (_cvTxSubType === 4) {
+        } else if (_cvTxSubType === 32) {
 
 
 
-        } else if (_cvTxSubType == 5) {
+        } else if (_cvTxSubType == 33) { 
 
             
 
