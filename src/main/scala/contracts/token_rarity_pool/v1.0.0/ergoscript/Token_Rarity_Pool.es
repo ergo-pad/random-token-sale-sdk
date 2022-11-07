@@ -38,10 +38,12 @@
     // Outputs: Token Rarity Pool Box j, User Box, Token Pool State Box
 
     // ===== Box Registers ===== //
+    // Tokens: Singleton Token Identifier
     // R4: AvlTree => Token References
     // R5: Short => Rarity Pool Size Limit
     // R6: Short => Current Rarity Pool Size
     // R7: Byte => Mint Type
+    // R8: Coll[Short] = Avl Tree Token Reference Keys
 
     // ===== Compile Time Constants ===== //
     // _ctTokenIssuanceBoxValue: Long
@@ -54,6 +56,7 @@
     val _rgRarityPoolSizeLimit: Short = SELF.R5[Short].get
     val _rgCurrentRarityPoolSize: Short = SELF.R6[Short].get
     val _rgMintType: Byte = SELF.R7[Byte].get
+    val _rgAvlTreeKeys: Coll[Short] = SELF.R8[Coll[Short]].get
 
     // ===== Mint Type ===== //
     // 1: Token Mint (TokenAmount > 1)
@@ -104,7 +107,8 @@
                             (tokenRarityPoolBoxOUT.R5[Short].get == _rgRarityPoolSizeLimit)
                             (tokenRarityPoolBoxOUT.R6[Short].get == _rgCurrentRarityPoolSize + 1),
                             (tokenRarityPoolBoxOUT.R6[Short].get <= _rgRarityPoolSizeLimit),
-                            (tokenRarityPoolBoxOUT.R7[Byte] == _rgMintType)
+                            (tokenRarityPoolBoxOUT.R7[Byte] == _rgMintType),
+                            (tokenRarityPoolBoxOUT.R8[Coll[Short]].get == _rgAvlTreeKeys.append(Coll(_rgCurrentRarityPoolSize + 1)))
                         ))
 
                     }
@@ -117,13 +121,13 @@
 
                         val validKeyVals: Boolean = {
 
-                            val avlKey: Int = byteArrayToLong(_cvAvlKeyVals(0)._1).toInt
+                            val avlKey: Short = byteArrayToLong(_cvAvlKeyVals(0)._1).toShort
                             val avlVal: Coll[Byte] = _cvAvlKeyVals(0)._2
                             
                             if (_rgCurrentRarityPoolSize < _rgRarityPoolSizeLimit) {
 
                                 allOf(Coll(
-                                    (avlKey == _rgCurrentRarityPoolSize.toInt),
+                                    (avlKey == _rgCurrentRarityPoolSize),
                                     (avlVal == tokenIssuerBoxIN.id)
                                 ))
 
@@ -210,7 +214,8 @@
                             (tokenRarityPoolBoxOUT.R4[AvlTree].get == SELF.R4[AvlTree].get),
                             (tokenRarityPoolBoxOUT.R5[Short].get == _rgRarityPoolSizeLimit),
                             (tokenRarityPoolBoxOUT.R6[Short].get == _rgCurrentRarityPoolSize),
-                            (tokenRarityPoolBoxOUT.R7[Byte].get == _rgMintType)
+                            (tokenRarityPoolBoxOUT.R7[Byte].get == _rgMintType),
+                            (tokenRarityPoolBoxOUT.R8[Coll[Short]].get == _rgAvlTreeKeys)
                         ))
 
                     }
@@ -226,6 +231,10 @@
 
                 }
 
+                allOf(Coll(
+                    validTokenRarityPoolBox
+                ))
+
             } else {
                 false
             }
@@ -238,7 +247,55 @@
 
         val validTokenSaleTx: Boolean = {
 
+            // ===== Context Extension Variables ===== //
+            val _cvTokenRarityPoolInputIndex: Int = getVar[Int](1).get
 
+            if (_rgMintType == 1) {
+
+                // ===== Outputs ===== //
+                val tokenRarityPoolBoxOUT: Box = OUTPUTS(_cvTokenRarityPoolInputIndex)
+
+                val validTokenRarityPoolBox: Boolean = {
+
+                    val validSelfReplication: Boolean = {
+
+                        allOf(Coll(
+                            (tokenRarityPoolBoxOUT.value == SELF.value),
+                            (tokenRarityPoolBoxOUT.propositionBytes == SELF.propositionBytes),
+                            (tokenRarityPoolBoxOUT.tokens(0) == SELF.tokens(0)),
+                            (tokenRarityPoolBoxOUT.R7[Byte].get == _rgMintType),
+                        ))
+
+                    }
+
+                    val validTokenRemoval: Boolean = {
+
+                    // TODO: add avl tree token check logic in this contract instead of the Toke Sale Proxy Contract,
+                    // TODO: leave the Token Sale Proxy Contract to only do token pack selection and nothing else.
+
+                    }
+
+                    allOf(Coll(
+                        validSelfReplication,
+                        validTokenRemoval
+                    ))
+
+                }
+
+                allOf(Coll(
+                    validTokenRarityPoolBox
+                ))
+
+            } else if (_rgMintType == 2) {
+
+                // ===== Inputs ===== //
+
+                // ===== Outputs ===== //
+
+
+            } else {
+                false
+            }
 
         }
 
