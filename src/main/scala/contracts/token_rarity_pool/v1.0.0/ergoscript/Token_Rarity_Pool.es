@@ -69,12 +69,12 @@
     // ===== Tx Sub-Types ===== //
     // 11: Initial Token Mint Tx
     // 12: Final Token Mint Tx
-    // 21: Initial Token Burn Tx
-    // 22: Subsequent Token Burn Tx
-    // 23: Final Token Burn Tx
-    // 31: Initial Reclaim Tokens Tx
-    // 32: Subsequent Reclaim Tokens Tx
-    // 33: Final Reclaim Tokens Tx
+    // 41: Initial Token Burn Tx
+    // 42: Subsequent Token Burn Tx
+    // 43: Final Token Burn Tx
+    // 51: Initial Reclaim Tokens Tx
+    // 52: Subsequent Reclaim Tokens Tx
+    // 53: Final Reclaim Tokens Tx
 
     if (_cvTxType == 1) {
 
@@ -196,11 +196,8 @@
 
                 // ===== Inputs ===== //
                 val tokenRarityPoolIssuanceBoxIN: Box = INPUTS(0)
-                val tokenPoolStateBoxIN: Box = INPUTS(1)
 
                 // ===== Outputs ===== //
-                val tokenRarityPoolIssuerBoxOUT: Box = OUTPUTS(0)
-                val tokenPoolStateBoxOUT: Box = OUTPUTS(1)
                 val tokenRarityPoolBoxOUT: Box = OUTPUTS(2)
 
                 val validTokenRarityPoolBox: Boolean = {
@@ -241,7 +238,7 @@
 
         val validTokenSaleTx: Boolean = {
 
-            
+
 
         }
 
@@ -254,15 +251,15 @@
         val _cvAVLKeyVals: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](2).get
         val _cvAVLProof: Coll[Byte] = getVar[Coll[Byte]](3).get
 
-        if (_cvTxSubType == 21) {
+        if (_cvTxSubType == 41) {
 
 
 
-        } else if (_cvTxSubType == 22) {
+        } else if (_cvTxSubType == 42) {
 
 
 
-        } else if (_cvTxSubType == 23) {
+        } else if (_cvTxSubType == 43) {
 
 
 
@@ -279,15 +276,15 @@
         val AVLKeyVals: Coll[(Coll[Byte], Coll[Byte])] = getVar[Coll[(Coll[Byte], Coll[Byte])]](2).get
         val AVLProof: Coll[Byte] = getVar[Coll[Byte]](3).get
 
-        if (_cvTxSubType == 31) {
+        if (_cvTxSubType == 51) {
 
 
 
-        } else if (_cvTxSubType === 32) {
+        } else if (_cvTxSubType === 52) {
 
 
 
-        } else if (_cvTxSubType == 33) { 
+        } else if (_cvTxSubType == 53) { 
 
             
 
